@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "moon_separation_sky_brightness.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

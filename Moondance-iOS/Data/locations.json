@@ -1,0 +1,172 @@
+{
+  "locations": [
+    {
+      "id": "atlanta",
+      "name": "Atlanta, GA",
+      "lat": 33.749,
+      "lon": -84.388,
+      "elevation": 320,
+      "timezone": "America/New_York"
+    },
+    {
+      "id": "new_york",
+      "name": "New York, NY",
+      "lat": 40.7128,
+      "lon": -74.0060,
+      "elevation": 10,
+      "timezone": "America/New_York"
+    },
+    {
+      "id": "los_angeles",
+      "name": "Los Angeles, CA",
+      "lat": 34.0522,
+      "lon": -118.2437,
+      "elevation": 71,
+      "timezone": "America/Los_Angeles"
+    },
+    {
+      "id": "chicago",
+      "name": "Chicago, IL",
+      "lat": 41.8781,
+      "lon": -87.6298,
+      "elevation": 181,
+      "timezone": "America/Chicago"
+    },
+    {
+      "id": "houston",
+      "name": "Houston, TX",
+      "lat": 29.7604,
+      "lon": -95.3698,
+      "elevation": 12,
+      "timezone": "America/Chicago"
+    },
+    {
+      "id": "phoenix",
+      "name": "Phoenix, AZ",
+      "lat": 33.4484,
+      "lon": -112.0740,
+      "elevation": 331,
+      "timezone": "America/Phoenix"
+    },
+    {
+      "id": "denver",
+      "name": "Denver, CO",
+      "lat": 39.7392,
+      "lon": -104.9903,
+      "elevation": 1609,
+      "timezone": "America/Denver"
+    },
+    {
+      "id": "seattle",
+      "name": "Seattle, WA",
+      "lat": 47.6062,
+      "lon": -122.3321,
+      "elevation": 53,
+      "timezone": "America/Los_Angeles"
+    },
+    {
+      "id": "miami",
+      "name": "Miami, FL",
+      "lat": 25.7617,
+      "lon": -80.1918,
+      "elevation": 2,
+      "timezone": "America/New_York"
+    },
+    {
+      "id": "boston",
+      "name": "Boston, MA",
+      "lat": 42.3601,
+      "lon": -71.0589,
+      "elevation": 5,
+      "timezone": "America/New_York"
+    },
+    {
+      "id": "san_francisco",
+      "name": "San Francisco, CA",
+      "lat": 37.7749,
+      "lon": -122.4194,
+      "elevation": 16,
+      "timezone": "America/Los_Angeles"
+    },
+    {
+      "id": "austin",
+      "name": "Austin, TX",
+      "lat": 30.2672,
+      "lon": -97.7431,
+      "elevation": 149,
+      "timezone": "America/Chicago"
+    },
+    {
+      "id": "portland",
+      "name": "Portland, OR",
+      "lat": 45.5152,
+      "lon": -122.6784,
+      "elevation": 15,
+      "timezone": "America/Los_Angeles"
+    },
+    {
+      "id": "las_vegas",
+      "name": "Las Vegas, NV",
+      "lat": 36.1699,
+      "lon": -115.1398,
+      "elevation": 610,
+      "timezone": "America/Los_Angeles"
+    },
+    {
+      "id": "minneapolis",
+      "name": "Minneapolis, MN",
+      "lat": 44.9778,
+      "lon": -93.2650,
+      "elevation": 264,
+      "timezone": "America/Chicago"
+    },
+    {
+      "id": "sydney",
+      "name": "Sydney, Australia",
+      "lat": -33.8688,
+      "lon": 151.2093,
+      "elevation": 58,
+      "timezone": "Australia/Sydney"
+    },
+    {
+      "id": "melbourne",
+      "name": "Melbourne, Australia",
+      "lat": -37.8136,
+      "lon": 144.9631,
+      "elevation": 31,
+      "timezone": "Australia/Melbourne"
+    },
+    {
+      "id": "santiago",
+      "name": "Santiago, Chile",
+      "lat": -33.4489,
+      "lon": -70.6693,
+      "elevation": 520,
+      "timezone": "America/Santiago"
+    },
+    {
+      "id": "cape_town",
+      "name": "Cape Town, South Africa",
+      "lat": -33.9249,
+      "lon": 18.4241,
+      "elevation": 0,
+      "timezone": "Africa/Johannesburg"
+    },
+    {
+      "id": "buenos_aires",
+      "name": "Buenos Aires, Argentina",
+      "lat": -34.6037,
+      "lon": -58.3816,
+      "elevation": 25,
+      "timezone": "America/Argentina/Buenos_Aires"
+    },
+    {
+      "id": "queenstown",
+      "name": "Queenstown, New Zealand",
+      "lat": -45.0312,
+      "lon": 168.6626,
+      "elevation": 310,
+      "timezone": "Pacific/Auckland"
+    }
+  ]
+}
