@@ -310,33 +310,29 @@ struct NightBarChartView: View {
                 .font(.system(size: 9))
 
             ForEach(day.targetResults) { tr in
-                let result = moonTierConfig.evaluateMoonAwareWithReason(
+                let rating = moonTierConfig.evaluateMoonAware(
                     moonPhase: day.moonPhase,
                     hoursMoonDown: tr.hoursMoonDown,
                     hoursMoonUp: tr.hoursMoonUp,
                     avgSeparationMoonUp: tr.avgSeparationMoonUp
                 )
+                let icon = simpleRatingIcon(rating)
                 Button {
                     selectedTarget = tr
                 } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(targetColors[tr.colorIndex])
-                                .frame(width: 8, height: 8)
-                            Text(tr.targetName)
-                                .foregroundStyle(targetColors[tr.colorIndex])
-                            Spacer()
-                            Image(systemName: result.rating.symbol)
-                                .font(.system(size: 9))
-                                .foregroundStyle(result.rating.color)
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 8))
-                                .foregroundStyle(.white.opacity(0.3))
-                        }
-                        Text(result.reason)
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(targetColors[tr.colorIndex])
+                            .frame(width: 8, height: 8)
+                        Text(tr.targetName)
+                            .foregroundStyle(targetColors[tr.colorIndex])
+                        Spacer()
+                        Image(systemName: icon.icon)
+                            .font(.system(size: 10))
+                            .foregroundStyle(icon.color)
+                        Image(systemName: "chevron.right")
                             .font(.system(size: 8))
-                            .foregroundStyle(result.rating.color.opacity(0.7))
+                            .foregroundStyle(.white.opacity(0.3))
                     }
                 }
             }
@@ -353,108 +349,54 @@ struct NightBarChartView: View {
     private func targetDetailSheet(day: DayResult, target: TargetNightResult) -> some View {
         NavigationStack {
             List {
-                Section("Visibility") {
+                Section("Imaging Timeline") {
                     if let vis = target.visibility {
-                        let azDiff = abs(vis.riseAzimuth - vis.setAzimuth)
-                        let isNarrowArc = azDiff < 5 || azDiff > 355  // handles wrap-around at 0°/360°
-
-                        if isNarrowArc {
-                            // Azimuths nearly identical — collapse to single line
-                            let avgAz = vis.riseAzimuth
-                            LabeledContent(
-                                "Visible near \(Int(avgAz))\u{00B0} (\(cardinalLabel(avgAz))) above \(Int(vis.riseMinAlt))\u{00B0}",
-                                value: "\(formatTime(vis.riseTime)) – \(formatTime(vis.setTime))"
-                            )
+                        // Opening: how does the target start?
+                        if vis.alreadyUpAtStart {
+                            Label {
+                                Text("Already up at \(Int(vis.riseAzimuth))\u{00B0} (\(cardinalLabel(vis.riseAzimuth))) when imaging starts at \(formatTime(vis.riseTime))")
+                            } icon: {
+                                Image(systemName: "scope")
+                                    .foregroundStyle(.white)
+                            }
+                            .font(.caption)
                         } else {
-                            // Rise label
-                            if vis.alreadyUpAtStart {
-                                LabeledContent(
-                                    "Already up at \(Int(vis.riseAzimuth))\u{00B0} (\(cardinalLabel(vis.riseAzimuth)))",
-                                    value: formatTime(vis.riseTime)
-                                )
-                            } else {
-                                LabeledContent(
-                                    "Rises above \(Int(vis.riseMinAlt))\u{00B0} at \(Int(vis.riseAzimuth))\u{00B0} (\(cardinalLabel(vis.riseAzimuth)))",
-                                    value: formatTime(vis.riseTime)
-                                )
+                            Label {
+                                Text("Rises above \(Int(vis.riseMinAlt))\u{00B0} at \(Int(vis.riseAzimuth))\u{00B0} (\(cardinalLabel(vis.riseAzimuth))) at \(formatTime(vis.riseTime))")
+                            } icon: {
+                                Image(systemName: "sunrise.fill")
+                                    .foregroundStyle(.orange)
                             }
-
-                            // Set label
-                            if vis.stillUpAtEnd {
-                                LabeledContent(
-                                    "Still up at \(Int(vis.setAzimuth))\u{00B0} (\(cardinalLabel(vis.setAzimuth)))",
-                                    value: formatTime(vis.setTime)
-                                )
-                            } else {
-                                LabeledContent(
-                                    "Sets below \(Int(vis.setMinAlt))\u{00B0} at \(Int(vis.setAzimuth))\u{00B0} (\(cardinalLabel(vis.setAzimuth)))",
-                                    value: formatTime(vis.setTime)
-                                )
-                            }
+                            .font(.caption)
                         }
-                        LabeledContent("Duration", value: String(format: "%.1f hrs", vis.durationHours))
+
+                        // Imaging segments
+                        let segments = buildImagingSegments(day: day, target: target, vis: vis)
+                        ForEach(Array(segments.enumerated()), id: \.offset) { _, seg in
+                            Label {
+                                Text(seg.text)
+                            } icon: {
+                                Image(systemName: seg.icon)
+                                    .foregroundStyle(seg.color)
+                            }
+                            .font(.caption)
+                        }
                     } else {
-                        Text("Not visible this night")
-                            .foregroundStyle(.red)
-                    }
-                }
-
-                Section("Moon Interaction") {
-                    LabeledContent("Moon Phase", value: String(format: "%.0f%%", day.moonPhase))
-
-                    if let moonVis = day.moonVisibility {
-                        LabeledContent("Moon Up", value: "\(formatTime(moonVis.riseTime)) – \(formatTime(moonVis.setTime))")
-                    } else {
-                        LabeledContent("Moon", value: "Below horizon all night")
-                    }
-
-                    LabeledContent("Angular Separation", value: String(format: "%.0f\u{00B0}", target.angularSeparation))
-
-                    let ratingResult = moonTierConfig.evaluateMoonAwareWithReason(
-                        moonPhase: day.moonPhase,
-                        hoursMoonDown: target.hoursMoonDown,
-                        hoursMoonUp: target.hoursMoonUp,
-                        avgSeparationMoonUp: target.avgSeparationMoonUp
-                    )
-                    HStack {
-                        Text("Imaging Rating")
-                        Spacer()
-                        Image(systemName: ratingResult.rating.symbol)
-                            .foregroundStyle(ratingResult.rating.color)
-                        Text(ratingResult.rating.label)
-                            .foregroundStyle(ratingResult.rating.color)
-                    }
-                    Text(ratingResult.reason)
+                        Label {
+                            Text("Never rises above minimum imaging altitude tonight")
+                        } icon: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.red)
+                        }
                         .font(.caption)
-                        .foregroundStyle(ratingResult.rating.color.opacity(0.8))
-                }
-
-                Section("Moon-Free Imaging") {
-                    if target.hoursMoonDown > 0 {
-                        LabeledContent("Moon-free hours", value: String(format: "%.1f hrs", target.hoursMoonDown))
-                            .foregroundStyle(.green)
                     }
-                    if target.hoursMoonUp > 0 {
-                        LabeledContent("Moon-up hours", value: String(format: "%.1f hrs", target.hoursMoonUp))
-                        if let sep = target.avgSeparationMoonUp {
-                            LabeledContent("Avg separation (moon up)", value: String(format: "%.0f\u{00B0}", sep))
-                        }
-                    }
-                    if target.hoursMoonDown <= 0 && target.hoursMoonUp <= 0 {
-                        Text("Target not visible this night")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                Section("Position") {
-                    LabeledContent("Target Altitude", value: String(format: "%.1f\u{00B0}", target.targetAlt))
                 }
 
                 if let night = day.nightWindow {
                     Section("Night") {
-                        LabeledContent("Darkness Start", value: formatTime(night.darknessStart))
-                        LabeledContent("Darkness End", value: formatTime(night.darknessEnd))
+                        LabeledContent("Darkness", value: "\(formatTime(night.darknessStart)) – \(formatTime(night.darknessEnd))")
                         LabeledContent("Dark Hours", value: String(format: "%.1f hrs", night.darkHours))
+                        LabeledContent("Moon Phase", value: String(format: "%.0f%%", day.moonPhase))
                     }
                 }
             }
@@ -469,6 +411,124 @@ struct NightBarChartView: View {
             }
         }
         .presentationDetents([.medium])
+    }
+
+    // MARK: - Imaging Segment Builder
+
+    private struct ImagingSegment {
+        let text: String
+        let icon: String
+        let color: Color
+    }
+
+    private func buildImagingSegments(day: DayResult, target: TargetNightResult, vis: TargetVisibilitySpan) -> [ImagingSegment] {
+        var segments: [ImagingSegment] = []
+        let tStart = vis.riseTime
+        let tEnd = vis.setTime
+
+        // How does the target's visibility end?
+        let targetEndReason: String
+        if vis.stillUpAtEnd {
+            targetEndReason = "predawn at \(formatTime(tEnd))"
+        } else {
+            targetEndReason = "it drops below \(Int(vis.setMinAlt))\u{00B0} at \(Int(vis.setAzimuth))\u{00B0} (\(cardinalLabel(vis.setAzimuth))) at \(formatTime(tEnd))"
+        }
+
+        // No moon visible at all → all good
+        guard let moonVis = day.moonVisibility else {
+            let hours = tEnd.timeIntervalSince(tStart) / 3600.0
+            segments.append(ImagingSegment(
+                text: "Good imaging for \(fmt(hours)) hrs without the moon until \(targetEndReason)",
+                icon: "checkmark.circle.fill",
+                color: .green
+            ))
+            return segments
+        }
+
+        // Find overlap between target visibility and moon visibility
+        let overlapStart = max(tStart, moonVis.riseTime)
+        let overlapEnd = min(tEnd, moonVis.setTime)
+
+        guard overlapStart < overlapEnd else {
+            // Moon doesn't overlap target visibility → all good
+            let hours = tEnd.timeIntervalSince(tStart) / 3600.0
+            segments.append(ImagingSegment(
+                text: "Good imaging for \(fmt(hours)) hrs without the moon until \(targetEndReason)",
+                icon: "checkmark.circle.fill",
+                color: .green
+            ))
+            return segments
+        }
+
+        // Evaluate moon-up quality
+        let sep = target.avgSeparationMoonUp ?? target.angularSeparation
+        let moonUpRating = moonTierConfig.evaluate(moonPhase: day.moonPhase, angularSeparation: sep)
+        let quality = segmentQuality(moonUpRating)
+        let moonDesc = "with \(Int(day.moonPhase))% moon, \(Int(sep))\u{00B0} separation"
+
+        // Segment 1: before moon (moon-down)
+        if tStart < overlapStart {
+            let hours = overlapStart.timeIntervalSince(tStart) / 3600.0
+            if hours >= 0.1 {
+                segments.append(ImagingSegment(
+                    text: "Good imaging for \(fmt(hours)) hrs without the moon until moonrise at \(formatTime(overlapStart))",
+                    icon: "checkmark.circle.fill",
+                    color: .green
+                ))
+            }
+        }
+
+        // Segment 2: moon-up overlap
+        let moonUpHours = overlapEnd.timeIntervalSince(overlapStart) / 3600.0
+        if moonUpHours >= 0.1 {
+            let moonUpEnd: String
+            if overlapEnd >= tEnd {
+                moonUpEnd = targetEndReason
+            } else {
+                moonUpEnd = "moonset at \(formatTime(overlapEnd))"
+            }
+            segments.append(ImagingSegment(
+                text: "\(quality.label) imaging for \(fmt(moonUpHours)) hrs \(moonDesc) until \(moonUpEnd)",
+                icon: quality.icon,
+                color: quality.color
+            ))
+        }
+
+        // Segment 3: after moon (moon-down)
+        if overlapEnd < tEnd {
+            let hours = tEnd.timeIntervalSince(overlapEnd) / 3600.0
+            if hours >= 0.1 {
+                segments.append(ImagingSegment(
+                    text: "Good imaging for \(fmt(hours)) hrs without the moon until \(targetEndReason)",
+                    icon: "checkmark.circle.fill",
+                    color: .green
+                ))
+            }
+        }
+
+        return segments
+    }
+
+    private func segmentQuality(_ rating: MoonTierConfig.ImagingRating) -> (label: String, icon: String, color: Color) {
+        switch rating {
+        case .good:      return ("Good", "checkmark.circle.fill", .green)
+        case .marginal:  return ("Fair", "questionmark.circle.fill", .yellow)
+        case .mixed:     return ("Fair", "questionmark.circle.fill", .yellow)
+        case .noImaging: return ("Poor", "xmark.circle.fill", .red)
+        }
+    }
+
+    /// Simplified rating icon for tooltip: green ✓, yellow ?, red ✗
+    private func simpleRatingIcon(_ rating: MoonTierConfig.ImagingRating) -> (icon: String, color: Color) {
+        switch rating {
+        case .good:               return ("checkmark.circle.fill", .green)
+        case .mixed, .marginal:   return ("questionmark.circle.fill", .yellow)
+        case .noImaging:          return ("xmark.circle.fill", .red)
+        }
+    }
+
+    private func fmt(_ hours: Double) -> String {
+        String(format: "%.1f", hours)
     }
 
     // MARK: - Helpers
