@@ -53,10 +53,7 @@ struct ContentView: View {
     ]
 
     private var maxTargets: Int {
-        let days = Int(dateRangeDays)
-        if days <= 120 { return 6 }
-        if days <= 180 { return 4 }
-        return 2
+        DeviceLimits.maxTargets(forDays: Int(dateRangeDays))
     }
 
     private var chartTitle: String {
@@ -112,7 +109,11 @@ struct ContentView: View {
                 selectedLocation: selectedLocation,
                 startDate: startDate,
                 observationTime: observationTime,
-                screenshot: feedbackScreenshot
+                screenshot: feedbackScreenshot,
+                targetCount: selectedTargets.count,
+                maxTargets: maxTargets,
+                dateRangeDays: Int(dateRangeDays),
+                calculationDays: calculationResult?.days.count ?? 0
             )
         }
     }

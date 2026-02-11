@@ -12,7 +12,13 @@ struct NightBarChartView: View {
 
     private let barSpacing: CGFloat = 4
 
-    private let moonColor: Color = .yellow.opacity(0.8)
+    /// Moon bar color: grayscale matching phase (dark = new, white = full)
+    private func moonBarFill(_ phase: Double) -> Color {
+        let t = min(max(phase / 100.0, 0), 1)
+        // 0% → dark gray (0.25), 100% → white (1.0)
+        let w = 0.25 + 0.75 * t
+        return Color(white: w)
+    }
 
     private let targetColors: [Color] = [
         .cyan.opacity(0.8),
@@ -106,7 +112,10 @@ struct NightBarChartView: View {
                     Text("Dark hrs")
                 }
                 HStack(spacing: 3) {
-                    Rectangle().fill(moonColor).frame(width: 10, height: 10)
+                    Rectangle().fill(
+                        LinearGradient(colors: [Color(white: 0.25), .white],
+                                       startPoint: .leading, endPoint: .trailing)
+                    ).frame(width: 10, height: 10)
                     Text("Moon")
                 }
                 ForEach(Array(result.targetNames.enumerated()), id: \.offset) { index, name in
@@ -165,18 +174,29 @@ struct NightBarChartView: View {
                     )
                     .foregroundStyle(moonBarColor(day.moonPhase))
 
-                    // Moon visibility bar (first sub-bar, yellow)
+                    // Moon visibility bar (grayscale matching phase, with pale yellow outline)
                     if let moonVis = day.moonVisibility {
                         let moonStart = hoursFromCenter(moonVis.riseTime, night: night)
                         let moonEnd = hoursFromCenter(moonVis.setTime, night: night)
 
+                        // Border bar (2px wider each side, rendered first = behind)
+                        BarMark(
+                            x: .value("Date", day.dateLabel),
+                            yStart: .value("VisStart", moonStart),
+                            yEnd: .value("VisEnd", moonEnd),
+                            width: .fixed(subBarWidth + 4)
+                        )
+                        .foregroundStyle(Color.yellow.opacity(0.5))
+                        .position(by: .value("Target", "Moon"))
+
+                        // Fill bar (phase-colored, on top)
                         BarMark(
                             x: .value("Date", day.dateLabel),
                             yStart: .value("VisStart", moonStart),
                             yEnd: .value("VisEnd", moonEnd),
                             width: .fixed(subBarWidth)
                         )
-                        .foregroundStyle(moonColor)
+                        .foregroundStyle(moonBarFill(day.moonPhase))
                         .position(by: .value("Target", "Moon"))
                     }
 
@@ -307,14 +327,17 @@ struct NightBarChartView: View {
             }
 
             HStack(spacing: 4) {
-                Circle().fill(moonColor).frame(width: 6, height: 6)
-                if let moonVis = day.moonVisibility {
-                    Text("Moon (\(day.moonPhase, specifier: "%.0f")%): \(formatTime(moonVis.riseTime)) \u{2013} \(formatTime(moonVis.setTime))")
-                        .foregroundStyle(moonColor)
-                } else {
-                    Text("Moon (\(day.moonPhase, specifier: "%.0f")%): below horizon")
-                        .foregroundStyle(.secondary)
-                }
+                Circle().fill(moonBarFill(day.moonPhase)).frame(width: 6, height: 6)
+                    .overlay(Circle().stroke(Color.yellow.opacity(0.5), lineWidth: 1))
+                Text("Moon: \(day.moonPhase, specifier: "%.0f")% illuminated")
+                    .foregroundStyle(Color.yellow.opacity(0.8))
+            }
+            if let moonVis = day.moonVisibility {
+                Text("  Up: \(formatTime(moonVis.riseTime)) \u{2013} \(formatTime(moonVis.setTime))")
+                    .foregroundStyle(Color.yellow.opacity(0.8))
+            } else {
+                Text("  Below horizon all night")
+                    .foregroundStyle(.secondary)
             }
         }
         .font(.caption2)

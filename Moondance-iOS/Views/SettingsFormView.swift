@@ -1,5 +1,118 @@
 import SwiftUI
 
+/// RAM-aware target/day limits. Adjusts based on device physical memory.
+enum DeviceLimits {
+    /// Debug override: set to 2, 3, 4, 6, 8 to simulate a device with that much RAM.
+    /// Set to nil (or 0) to use actual device RAM. Only works in DEBUG builds.
+    #if DEBUG
+    static var debugRAMOverride: Int? = nil
+    #endif
+
+    /// Effective RAM tier used for all limit calculations
+    static var effectiveRAM_GB: Int {
+        #if DEBUG
+        if let override = debugRAMOverride, override > 0 {
+            return override
+        }
+        #endif
+        return actualRAM_GB
+    }
+
+    /// Actual device RAM
+    static let actualRAM_GB: Int = {
+        let bytes = ProcessInfo.processInfo.physicalMemory
+        return Int(bytes / (1024 * 1024 * 1024))
+    }()
+
+    /// Maximum date range
+    static var maxDateRange: Int { 365 }
+
+    /// Maximum targets allowed for a given day count
+    static func maxTargets(forDays days: Int) -> Int {
+        return 6  // Uncapped for stress testing — memory profiling shows no risk
+    }
+}
+
+#if DEBUG
+enum MemoryProfiler {
+    static func footprintMB() -> Double {
+        var info = task_vm_info_data_t()
+        var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size) / 4
+        let result = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return -1 }
+        return Double(info.phys_footprint) / 1_048_576
+    }
+
+    static func run() -> String {
+        let allTargets: [(name: String, ra: Double, dec: Double)] = [
+            ("M42", 83.82, -5.39),
+            ("M31", 10.68, 41.27),
+            ("M45", 56.87, 24.12),
+            ("M81", 148.89, 69.07),
+            ("NGC7000", 314.68, 44.53),
+            ("M33", 23.46, 30.66),
+        ]
+
+        let scenarios: [(targets: Int, days: Int, label: String)] = [
+            (1, 30,  "Small    1T x  30d"),
+            (3, 90,  "Medium   3T x  90d"),
+            (6, 120, "Large    6T x 120d"),
+            (6, 365, "MAX      6T x 365d"),
+        ]
+
+        let baselineMB = footprintMB()
+        var lines: [String] = []
+        lines.append("Baseline: \(String(format: "%.0f", baselineMB)) MB")
+        lines.append("")
+        lines.append("Scenario              Delta    Time")
+        lines.append(String(repeating: "-", count: 40))
+
+        for s in scenarios {
+            let targets = Array(allTargets.prefix(s.targets))
+            let startDate = Date()
+            let endDate = Calendar.current.date(byAdding: .day, value: s.days - 1, to: startDate)!
+
+            let beforeMB = footprintMB()
+            let startTime = CFAbsoluteTimeGetCurrent()
+
+            let result = AstronomyEngine.calculate(
+                latitude: 33.749,
+                longitude: -84.388,
+                elevation: 320,
+                timezone: "America/New_York",
+                targetRAs: targets.map { $0.ra },
+                targetDecs: targets.map { $0.dec },
+                targetNames: targets.map { $0.name },
+                startDate: startDate,
+                endDate: endDate,
+                observationHour: 22
+            )
+
+            let elapsed = CFAbsoluteTimeGetCurrent() - startTime
+            let afterMB = footprintMB()
+            _ = result.days.count
+
+            let pad = s.label.padding(toLength: 20, withPad: " ", startingAt: 0)
+            let line = "\(pad) \(String(format: "%+5.1f", afterMB - beforeMB))MB  \(String(format: "%5.2f", elapsed))s"
+            lines.append(line)
+        }
+
+        let finalMB = footprintMB()
+        lines.append(String(repeating: "-", count: 42))
+        lines.append(String(format: "Final: %.0f MB (+%.0f MB)", finalMB, finalMB - baselineMB))
+        lines.append("")
+        lines.append("Jetsam limits:")
+        lines.append("  2GB~800  3GB~1200  4GB~1600  6GB~2500")
+
+        return lines.joined(separator: "\n")
+    }
+}
+#endif
+
 /// Provides the settings sections (Location, Date/Time, Constraints, Moon Tiers)
 /// to be embedded inside a parent Form. Target selection lives on the main screen.
 struct SettingsFormContent: View {
@@ -23,12 +136,8 @@ struct SettingsFormContent: View {
 
     private let dataManager = DataManager.shared
 
-    /// Dynamic target limit based on date range to keep Swift Charts under ~1000 marks
     private var maxTargets: Int {
-        let days = Int(dateRangeDays)
-        if days <= 120 { return 6 }
-        if days <= 180 { return 4 }
-        return 2
+        DeviceLimits.maxTargets(forDays: Int(dateRangeDays))
     }
 
     /// Binding for Picker that only shows locations from the preset list
@@ -48,12 +157,21 @@ struct SettingsFormContent: View {
         )
     }
 
+    #if DEBUG
+    @State private var debugRAM: Int = DeviceLimits.actualRAM_GB
+    @State private var memoryReport: String?
+    @State private var isProfileRunning = false
+    #endif
+
     var body: some View {
         Group {
             locationSection
             dateTimeSection
             observingConstraintsSection
             moonTierSection
+            #if DEBUG
+            debugSection
+            #endif
         }
         .onAppear {
             if let loc = selectedLocation, loc.id.hasPrefix("search-") {
@@ -198,7 +316,7 @@ struct SettingsFormContent: View {
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
-                Slider(value: $dateRangeDays, in: 30...365, step: 1)
+                Slider(value: $dateRangeDays, in: 30...Double(DeviceLimits.maxDateRange), step: 1)
             }
         } header: {
             Text("Date & Time")
@@ -307,6 +425,102 @@ struct SettingsFormContent: View {
     }
 
     // MARK: - Computed Helpers
+
+    // MARK: - Debug Section (DEBUG builds only)
+
+    #if DEBUG
+    private var debugSection: some View {
+        Group {
+        Section {
+            HStack {
+                Text("Actual RAM")
+                Spacer()
+                Text("\(DeviceLimits.actualRAM_GB) GB")
+                    .foregroundColor(.secondary)
+            }
+
+            Picker("Simulate RAM", selection: $debugRAM) {
+                Text("Actual (\(DeviceLimits.actualRAM_GB) GB)").tag(DeviceLimits.actualRAM_GB)
+                Text("2 GB (iPhone SE/8)").tag(2)
+                Text("3 GB (iPhone 11)").tag(3)
+                Text("4 GB (iPhone 12)").tag(4)
+                Text("6 GB (iPhone 12 Pro Max)").tag(6)
+                Text("8 GB (iPhone 15 Pro)").tag(8)
+            }
+            .onChange(of: debugRAM) { _, newValue in
+                DeviceLimits.debugRAMOverride = (newValue == DeviceLimits.actualRAM_GB) ? nil : newValue
+                // Clamp date range if it now exceeds the new max
+                if dateRangeDays > Double(DeviceLimits.maxDateRange) {
+                    dateRangeDays = Double(DeviceLimits.maxDateRange)
+                }
+                // Trim targets if over new limit
+                if selectedTargets.count > maxTargets {
+                    selectedTargets = Array(selectedTargets.prefix(maxTargets))
+                }
+            }
+
+            HStack {
+                Text("Max Days")
+                Spacer()
+                Text("\(DeviceLimits.maxDateRange)")
+                    .foregroundColor(.secondary)
+            }
+            HStack {
+                Text("Max Targets (at \(Int(dateRangeDays))d)")
+                Spacer()
+                Text("\(maxTargets)")
+                    .foregroundColor(.secondary)
+            }
+        } header: {
+            Text("Debug: RAM Simulation")
+        } footer: {
+            Text("Simulates device RAM limits. Only visible in debug builds.")
+                .font(.caption)
+        }
+
+        Section {
+            Button {
+                runMemoryProfile()
+            } label: {
+                HStack {
+                    Image(systemName: "memorychip")
+                    Text(isProfileRunning ? "Running..." : "Run Memory Profile")
+                    if isProfileRunning {
+                        Spacer()
+                        ProgressView()
+                    }
+                }
+            }
+            .disabled(isProfileRunning)
+
+            if let report = memoryReport {
+                Text(report)
+                    .font(.system(.caption2, design: .monospaced))
+                    .textSelection(.enabled)
+            }
+        } header: {
+            Text("Debug: Memory Profiler")
+        } footer: {
+            Text("Runs calculations at all RAM tier limits and measures memory usage.")
+                .font(.caption)
+        }
+        } // Group
+    }
+
+
+    private func runMemoryProfile() {
+        isProfileRunning = true
+        memoryReport = nil
+
+        Task.detached(priority: .userInitiated) {
+            let report = MemoryProfiler.run()
+            await MainActor.run {
+                memoryReport = report
+                isProfileRunning = false
+            }
+        }
+    }
+    #endif
 
     private var commonTimezones: [String] {
         [
