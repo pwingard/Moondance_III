@@ -10,12 +10,18 @@ struct SummaryView: View {
                 .font(.headline)
 
             // Stats
-            HStack(spacing: 20) {
+            HStack(spacing: 12) {
                 statCard(
                     title: "Good",
                     value: "\(goodNights.count)",
-                    subtitle: "meets tier sep",
+                    subtitle: "moon-free",
                     color: .green
+                )
+                statCard(
+                    title: "Mixed",
+                    value: "\(mixedNights.count)",
+                    subtitle: "partial moon",
+                    color: .orange
                 )
                 statCard(
                     title: "Marginal",
@@ -24,9 +30,9 @@ struct SummaryView: View {
                     color: .yellow
                 )
                 statCard(
-                    title: "No Imaging",
+                    title: "Avoid",
                     value: "\(noImagingNights.count)",
-                    subtitle: "moon > \(Int(moonTierConfig.maxMoonPhase))%",
+                    subtitle: "moon too bright",
                     color: .red
                 )
             }
@@ -123,30 +129,29 @@ struct SummaryView: View {
 
     // MARK: - Computed (using first target for backward compatibility)
 
-    /// Nights where the primary target has "good" imaging rating
+    private func ratingForDay(_ day: DayResult) -> MoonTierConfig.ImagingRating {
+        guard let first = day.targetResults.first else { return .noImaging }
+        return moonTierConfig.evaluateMoonAware(
+            moonPhase: day.moonPhase,
+            hoursMoonDown: first.hoursMoonDown,
+            hoursMoonUp: first.hoursMoonUp,
+            avgSeparationMoonUp: first.avgSeparationMoonUp
+        )
+    }
+
     private var goodNights: [DayResult] {
-        result.days.filter { day in
-            guard let first = day.targetResults.first else { return false }
-            return moonTierConfig.evaluate(
-                moonPhase: day.moonPhase,
-                angularSeparation: first.angularSeparation
-            ) == .good
-        }
+        result.days.filter { ratingForDay($0) == .good }
     }
 
-    /// Nights where primary target is marginal (separation too low but moon OK)
+    private var mixedNights: [DayResult] {
+        result.days.filter { ratingForDay($0) == .mixed }
+    }
+
     private var marginalNights: [DayResult] {
-        result.days.filter { day in
-            guard let first = day.targetResults.first else { return false }
-            return moonTierConfig.evaluate(
-                moonPhase: day.moonPhase,
-                angularSeparation: first.angularSeparation
-            ) == .marginal
-        }
+        result.days.filter { ratingForDay($0) == .marginal }
     }
 
-    /// Nights where moon illumination exceeds max threshold
     private var noImagingNights: [DayResult] {
-        result.days.filter { $0.moonPhase > moonTierConfig.maxMoonPhase }
+        result.days.filter { ratingForDay($0) == .noImaging }
     }
 }

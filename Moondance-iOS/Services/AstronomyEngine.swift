@@ -99,6 +99,12 @@ nonisolated struct AstronomyEngine: Sendable {
                 darknessStart: darknessStart, darknessEnd: darknessEnd
             )
 
+            // Moon altitude profile for background glow (20-minute steps)
+            let moonProfile = computeMoonAltitudeProfile(
+                latitude: latitude, longitude: longitude,
+                darknessStart: darknessStart, darknessEnd: darknessEnd
+            )
+
             // Calculate per-target results
             var targetResults: [TargetNightResult] = []
             for i in 0..<targetRAs.count {
@@ -129,13 +135,26 @@ nonisolated struct AstronomyEngine: Sendable {
                     minAltitudes: minAltitudes
                 )
 
+                // Moon-aware analysis: how much of target's visibility overlaps with moon up/down
+                let moonAnalysis = analyzeMoonOverlap(
+                    targetRA: tRA, targetDec: tDec,
+                    latitude: latitude, longitude: longitude,
+                    targetVisibility: visibility,
+                    moonVisibility: moonVis,
+                    darknessStart: darknessStart,
+                    darknessEnd: darknessEnd
+                )
+
                 targetResults.append(TargetNightResult(
                     targetName: tName,
                     colorIndex: i,
                     targetAlt: (targetAltAz.alt * 10).rounded() / 10,
                     angularSeparation: (separation * 10).rounded() / 10,
                     imagingWindow: window,
-                    visibility: visibility
+                    visibility: visibility,
+                    hoursMoonDown: moonAnalysis.hoursMoonDown,
+                    hoursMoonUp: moonAnalysis.hoursMoonUp,
+                    avgSeparationMoonUp: moonAnalysis.avgSeparationMoonUp
                 ))
             }
 
@@ -146,6 +165,7 @@ nonisolated struct AstronomyEngine: Sendable {
                 moonPhase: phase.rounded(),
                 nightWindow: nightWin,
                 moonVisibility: moonVis,
+                moonAltitudeProfile: moonProfile,
                 targetResults: targetResults
             ))
 
@@ -552,7 +572,12 @@ nonisolated struct AstronomyEngine: Sendable {
 
         var riseTime: Date? = nil
         var setTime: Date? = nil
+        var riseAz: Double = 0
+        var setAz: Double = 0
+        var riseMinAltVal: Double = 0
+        var setMinAltVal: Double = 0
         var wasAbove = false
+        var wasAlreadyUp = false
 
         // Check darknessStart
         let jdStart = julianDate(from: darknessStart)
@@ -560,7 +585,10 @@ nonisolated struct AstronomyEngine: Sendable {
         let startMinAlt = interpolatedMinAltitude(forAzimuth: startAltAz.az, minAltitudes: minAltitudes)
         if startAltAz.alt >= startMinAlt {
             riseTime = darknessStart
+            riseAz = startAltAz.az
+            riseMinAltVal = startMinAlt
             wasAbove = true
+            wasAlreadyUp = true
         }
 
         // Walk through the night
@@ -574,8 +602,12 @@ nonisolated struct AstronomyEngine: Sendable {
 
             if isAbove && !wasAbove {
                 riseTime = checkTime
+                riseAz = altAz.az
+                riseMinAltVal = minAlt
             } else if !isAbove && wasAbove {
                 setTime = checkTime
+                setAz = altAz.az
+                setMinAltVal = minAlt
                 break
             }
             wasAbove = isAbove
@@ -584,6 +616,14 @@ nonisolated struct AstronomyEngine: Sendable {
 
         guard let rise = riseTime else { return nil }
         let set = setTime ?? darknessEnd
+
+        // If target was still up at darknessEnd, capture the final azimuth/minAlt
+        if setTime == nil {
+            let jdEnd = julianDate(from: darknessEnd)
+            let endAltAz = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: jdEnd, lat: latitude, lon: longitude)
+            setAz = endAltAz.az
+            setMinAltVal = interpolatedMinAltitude(forAzimuth: endAltAz.az, minAltitudes: minAltitudes)
+        }
 
         let riseOffset = rise.timeIntervalSince(darknessStart) / 3600.0
         let setOffset = set.timeIntervalSince(darknessStart) / 3600.0
@@ -594,7 +634,13 @@ nonisolated struct AstronomyEngine: Sendable {
             setTime: set,
             durationHours: (duration * 10).rounded() / 10,
             riseOffsetHours: (riseOffset * 10).rounded() / 10,
-            setOffsetHours: (setOffset * 10).rounded() / 10
+            setOffsetHours: (setOffset * 10).rounded() / 10,
+            riseAzimuth: riseAz,
+            setAzimuth: setAz,
+            riseMinAlt: riseMinAltVal,
+            setMinAlt: setMinAltVal,
+            alreadyUpAtStart: wasAlreadyUp,
+            stillUpAtEnd: setTime == nil
         )
     }
 
@@ -661,8 +707,93 @@ nonisolated struct AstronomyEngine: Sendable {
             setTime: set,
             durationHours: (duration * 10).rounded() / 10,
             riseOffsetHours: (riseOffset * 10).rounded() / 10,
-            setOffsetHours: (setOffset * 10).rounded() / 10
+            setOffsetHours: (setOffset * 10).rounded() / 10,
+            riseAzimuth: 0,
+            setAzimuth: 0,
+            riseMinAlt: 0,
+            setMinAlt: 0,
+            alreadyUpAtStart: false,
+            stillUpAtEnd: false
         )
+    }
+
+    /// Compute moon altitude at regular intervals throughout the darkness window.
+    /// Used for rendering the moon-glow background gradient in the bar chart.
+    static func computeMoonAltitudeProfile(
+        latitude: Double, longitude: Double,
+        darknessStart: Date, darknessEnd: Date
+    ) -> [MoonAltitudeSample] {
+        let stepSeconds: TimeInterval = 20 * 60  // 20-minute steps
+        let totalSeconds = darknessEnd.timeIntervalSince(darknessStart)
+        guard totalSeconds > 0 else { return [] }
+
+        var samples: [MoonAltitudeSample] = []
+        var t: TimeInterval = 0
+        while t <= totalSeconds {
+            let time = darknessStart.addingTimeInterval(t)
+            let jd = julianDate(from: time)
+            let moonEq = moonEquatorial(jd: jd)
+            let altAz = equatorialToAltAz(
+                ra: moonEq.ra, dec: moonEq.dec,
+                jd: jd, lat: latitude, lon: longitude
+            )
+            samples.append(MoonAltitudeSample(time: time, altitude: altAz.alt))
+            t += stepSeconds
+        }
+        return samples
+    }
+
+    /// Analyze how much of a target's visibility overlaps with moon above/below horizon.
+    /// Returns hours of moon-down visibility, hours of moon-up visibility, and average separation during moon-up.
+    static func analyzeMoonOverlap(
+        targetRA: Double, targetDec: Double,
+        latitude: Double, longitude: Double,
+        targetVisibility: TargetVisibilitySpan?,
+        moonVisibility: TargetVisibilitySpan?,
+        darknessStart: Date, darknessEnd: Date
+    ) -> (hoursMoonDown: Double, hoursMoonUp: Double, avgSeparationMoonUp: Double?) {
+        guard let targetVis = targetVisibility else {
+            return (0, 0, nil)
+        }
+
+        // If moon never rises, all target visibility is moon-down
+        guard let moonVis = moonVisibility else {
+            return (targetVis.durationHours, 0, nil)
+        }
+
+        let stepMinutes: TimeInterval = 10 * 60
+        var moonDownMinutes: Double = 0
+        var moonUpMinutes: Double = 0
+        var separations: [Double] = []
+
+        var t = targetVis.riseTime
+        while t < targetVis.setTime {
+            let isMoonUp = t >= moonVis.riseTime && t < moonVis.setTime
+
+            if isMoonUp {
+                moonUpMinutes += 10
+                // Calculate actual separation at this moment
+                let jd = julianDate(from: t)
+                let moonEq = moonEquatorial(jd: jd)
+                let moonAltAz = equatorialToAltAz(ra: moonEq.ra, dec: moonEq.dec, jd: jd, lat: latitude, lon: longitude)
+                let targetAltAz = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: jd, lat: latitude, lon: longitude)
+                let sep = angularSeparationAltAz(
+                    alt1: moonAltAz.alt, az1: moonAltAz.az,
+                    alt2: targetAltAz.alt, az2: targetAltAz.az
+                )
+                separations.append(sep)
+            } else {
+                moonDownMinutes += 10
+            }
+
+            t = t.addingTimeInterval(stepMinutes)
+        }
+
+        let hoursDown = (moonDownMinutes / 60.0 * 10).rounded() / 10
+        let hoursUp = (moonUpMinutes / 60.0 * 10).rounded() / 10
+        let avgSep = separations.isEmpty ? nil : (separations.reduce(0, +) / Double(separations.count) * 10).rounded() / 10
+
+        return (hoursDown, hoursUp, avgSep)
     }
 
     /// Find sunrise time near an approximate date by checking when sun altitude crosses 0.
