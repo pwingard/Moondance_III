@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SummaryView: View {
     let result: CalculationResult
+    var moonTierConfig: MoonTierConfig = .defaults
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -11,40 +12,40 @@ struct SummaryView: View {
             // Stats
             HStack(spacing: 20) {
                 statCard(
-                    title: "Good Nights",
+                    title: "Good",
                     value: "\(goodNights.count)",
-                    subtitle: "sep ≥ 90°",
+                    subtitle: "meets tier sep",
                     color: .green
                 )
                 statCard(
-                    title: "Best Nights",
-                    value: "\(bestNights.count)",
-                    subtitle: "sep ≥ 90° & phase < 20%",
-                    color: .cyan
+                    title: "Marginal",
+                    value: "\(marginalNights.count)",
+                    subtitle: "low separation",
+                    color: .yellow
                 )
                 statCard(
-                    title: "Avoid",
-                    value: "\(avoidNights.count)",
-                    subtitle: "sep < 30° or phase > 80%",
+                    title: "No Imaging",
+                    value: "\(noImagingNights.count)",
+                    subtitle: "moon > \(Int(moonTierConfig.maxMoonPhase))%",
                     color: .red
                 )
             }
 
             // Best dates
-            if !bestNights.isEmpty {
+            if !goodNights.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Best Imaging Dates")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(.cyan)
+                        .foregroundColor(.green)
 
-                    ForEach(bestNights) { day in
+                    ForEach(goodNights.prefix(12)) { day in
                         HStack {
                             Text(day.dateLabel)
                                 .fontWeight(.medium)
                             Spacer()
-                            Text("Sep: \(day.angularSeparation, specifier: "%.0f")°")
-                            Text("Phase: \(day.moonPhase, specifier: "%.0f")%")
+                            Text("Sep: \(day.angularSeparation, specifier: "%.0f")\u{00B0}")
+                            Text("Moon: \(day.moonPhase, specifier: "%.0f")%")
                                 .foregroundColor(.secondary)
                             if day.imagingWindow.durationHours > 0 {
                                 Text("\(day.imagingWindow.durationHours, specifier: "%.1f")h")
@@ -53,6 +54,12 @@ struct SummaryView: View {
                         }
                         .font(.caption)
                     }
+
+                    if goodNights.count > 12 {
+                        Text("+ \(goodNights.count - 12) more")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 .padding()
                 .background(Color(.systemGray6))
@@ -60,27 +67,26 @@ struct SummaryView: View {
             }
 
             // Dates to avoid
-            if !avoidNights.isEmpty {
+            if !noImagingNights.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Dates to Avoid")
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(.red)
 
-                    ForEach(avoidNights.prefix(10)) { day in
+                    ForEach(noImagingNights.prefix(10)) { day in
                         HStack {
                             Text(day.dateLabel)
                                 .fontWeight(.medium)
                             Spacer()
-                            Text("Sep: \(day.angularSeparation, specifier: "%.0f")°")
-                            Text("Phase: \(day.moonPhase, specifier: "%.0f")%")
+                            Text("Moon: \(day.moonPhase, specifier: "%.0f")%")
                                 .foregroundColor(.secondary)
                         }
                         .font(.caption)
                     }
 
-                    if avoidNights.count > 10 {
-                        Text("+ \(avoidNights.count - 10) more")
+                    if noImagingNights.count > 10 {
+                        Text("+ \(noImagingNights.count - 10) more")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -115,20 +121,32 @@ struct SummaryView: View {
         .cornerRadius(8)
     }
 
-    // MARK: - Computed
+    // MARK: - Computed (using first target for backward compatibility)
 
-    /// Nights with separation >= 90 degrees
+    /// Nights where the primary target has "good" imaging rating
     private var goodNights: [DayResult] {
-        result.days.filter { $0.angularSeparation >= 90 }
+        result.days.filter { day in
+            guard let first = day.targetResults.first else { return false }
+            return moonTierConfig.evaluate(
+                moonPhase: day.moonPhase,
+                angularSeparation: first.angularSeparation
+            ) == .good
+        }
     }
 
-    /// Best nights: separation >= 90 AND moon phase < 20%
-    private var bestNights: [DayResult] {
-        result.days.filter { $0.angularSeparation >= 90 && $0.moonPhase < 20 }
+    /// Nights where primary target is marginal (separation too low but moon OK)
+    private var marginalNights: [DayResult] {
+        result.days.filter { day in
+            guard let first = day.targetResults.first else { return false }
+            return moonTierConfig.evaluate(
+                moonPhase: day.moonPhase,
+                angularSeparation: first.angularSeparation
+            ) == .marginal
+        }
     }
 
-    /// Nights to avoid: separation < 30 OR moon phase > 80%
-    private var avoidNights: [DayResult] {
-        result.days.filter { $0.angularSeparation < 30 || $0.moonPhase > 80 }
+    /// Nights where moon illumination exceeds max threshold
+    private var noImagingNights: [DayResult] {
+        result.days.filter { $0.moonPhase > moonTierConfig.maxMoonPhase }
     }
 }

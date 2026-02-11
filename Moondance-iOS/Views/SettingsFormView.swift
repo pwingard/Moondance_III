@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// Provides the settings sections to be embedded inside a parent Form.
+/// Provides the settings sections (Location, Date/Time, Constraints, Moon Tiers)
+/// to be embedded inside a parent Form. Target selection lives on the main screen.
 struct SettingsFormContent: View {
     @Binding var selectedLocation: Location?
-    @Binding var selectedTarget: Target?
+    @Binding var selectedTargets: [Target]
     @Binding var startDate: Date
     @Binding var observationTime: Date
     @Binding var customLat: String
@@ -11,22 +12,29 @@ struct SettingsFormContent: View {
     @Binding var customElevation: String
     @Binding var customTimezone: String
     @Binding var useCustomLocation: Bool
-    @Binding var useCustomTarget: Bool
-    @Binding var customRA: String
-    @Binding var customDec: String
+    @Binding var directionalAltitudes: DirectionalAltitudes
+    @Binding var duskDawnBuffer: Double
+    @Binding var dateRangeDays: Double
+    @Binding var moonTierConfig: MoonTierConfig
 
     @StateObject private var locationService = LocationService()
-    @State private var showTargetPicker = false
     @State private var showLocationSearch = false
     @State private var searchedLocation: Location?
 
     private let dataManager = DataManager.shared
 
+    /// Dynamic target limit based on date range to keep Swift Charts under ~1000 marks
+    private var maxTargets: Int {
+        let days = Int(dateRangeDays)
+        if days <= 120 { return 6 }
+        if days <= 180 { return 4 }
+        return 2
+    }
+
     /// Binding for Picker that only shows locations from the preset list
     private var pickerLocationBinding: Binding<Location?> {
         Binding(
             get: {
-                // Only return if it's a preset location (not GPS or searched)
                 if let loc = selectedLocation,
                    dataManager.locations.contains(where: { $0.id == loc.id }) {
                     return loc
@@ -35,7 +43,6 @@ struct SettingsFormContent: View {
             },
             set: { newValue in
                 selectedLocation = newValue
-                // Clear searched location when picking from presets
                 searchedLocation = nil
             }
         )
@@ -44,13 +51,18 @@ struct SettingsFormContent: View {
     var body: some View {
         Group {
             locationSection
-            targetSection
             dateTimeSection
+            observingConstraintsSection
+            moonTierSection
         }
         .onAppear {
-            // Restore searchedLocation if selectedLocation is a searched location
             if let loc = selectedLocation, loc.id.hasPrefix("search-") {
                 searchedLocation = loc
+            }
+        }
+        .onChange(of: dateRangeDays) { _, _ in
+            if selectedTargets.count > maxTargets {
+                selectedTargets = Array(selectedTargets.prefix(maxTargets))
             }
         }
     }
@@ -106,7 +118,6 @@ struct SettingsFormContent: View {
                     }
                 }
 
-                // Show searched location
                 if let searched = searchedLocation {
                     Button {
                         selectedLocation = searched
@@ -116,7 +127,7 @@ struct SettingsFormContent: View {
                                 .foregroundColor(selectedLocation?.id == searched.id ? .green : .secondary)
                             VStack(alignment: .leading) {
                                 Text(searched.name)
-                                Text("\(searched.lat, specifier: "%.2f"), \(searched.lon, specifier: "%.2f") • \(searched.timezone.replacingOccurrences(of: "_", with: " "))")
+                                Text("\(searched.lat, specifier: "%.2f"), \(searched.lon, specifier: "%.2f") \u{2022} \(searched.timezone.replacingOccurrences(of: "_", with: " "))")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -136,7 +147,7 @@ struct SettingsFormContent: View {
                                 .foregroundColor(selectedLocation?.id == "gps" ? .green : .secondary)
                             VStack(alignment: .leading) {
                                 Text(detected.name)
-                                Text("\(detected.lat, specifier: "%.2f"), \(detected.lon, specifier: "%.2f") • \(detected.timezone.replacingOccurrences(of: "_", with: " "))")
+                                Text("\(detected.lat, specifier: "%.2f"), \(detected.lon, specifier: "%.2f") \u{2022} \(detected.timezone.replacingOccurrences(of: "_", with: " "))")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -171,66 +182,128 @@ struct SettingsFormContent: View {
         }
     }
 
-    // MARK: - Target Section
-
-    private var targetSection: some View {
-        Section {
-            if !useCustomTarget {
-                Button {
-                    showTargetPicker = true
-                } label: {
-                    HStack {
-                        Text("Target")
-                            .foregroundColor(.primary)
-                        Spacer()
-                        Text(selectedTarget?.name ?? "Select...")
-                            .foregroundColor(selectedTarget == nil ? .secondary : .primary)
-                            .lineLimit(1)
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .sheet(isPresented: $showTargetPicker) {
-                    NavigationStack {
-                        SearchableTargetPicker(selectedTarget: $selectedTarget, isPresented: $showTargetPicker)
-                    }
-                }
-
-                if let target = selectedTarget {
-                    HStack {
-                        Text("RA: \(target.ra, specifier: "%.4f")°")
-                        Spacer()
-                        Text("Dec: \(target.dec, specifier: "%.4f")°")
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }
-            }
-
-            DisclosureGroup("Custom RA/Dec", isExpanded: $useCustomTarget) {
-                TextField("RA (degrees, 0-360)", text: $customRA)
-                    .keyboardType(.decimalPad)
-                TextField("Dec (degrees, -90 to 90)", text: $customDec)
-                    .keyboardType(.decimalPad)
-            }
-        } header: {
-            Text("Target")
-        }
-    }
-
     // MARK: - Date/Time Section
 
     private var dateTimeSection: some View {
         Section {
             DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
             DatePicker("Local Time at Location", selection: $observationTime, displayedComponents: .hourAndMinute)
+
+            VStack(alignment: .leading) {
+                HStack {
+                    Text("Date Range: \(Int(dateRangeDays)) days")
+                        .font(.subheadline)
+                    Spacer()
+                    Text("max \(maxTargets) targets")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                Slider(value: $dateRangeDays, in: 30...365, step: 1)
+            }
         } header: {
             Text("Date & Time")
         } footer: {
             Text("Time is interpreted as local time at the observation location")
                 .font(.caption)
         }
+    }
+
+    // MARK: - Observing Constraints
+
+    private var observingConstraintsSection: some View {
+        Section {
+            HorizonProfileView(altitudes: $directionalAltitudes)
+
+            VStack(alignment: .leading) {
+                Text("Dusk/Dawn Buffer: \(duskDawnBuffer, specifier: "%.1f") hrs")
+                    .font(.subheadline)
+                Slider(value: $duskDawnBuffer, in: 0...2, step: 0.25)
+            }
+        } header: {
+            Text("Horizon Profile")
+        } footer: {
+            Text("Min altitude per compass direction filters low-horizon targets. Buffer excludes time near twilight.")
+                .font(.caption)
+        }
+    }
+
+    // MARK: - Moon Brightness Tiers
+
+    private var moonTierSection: some View {
+        Section {
+            ForEach(0..<4, id: \.self) { i in
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(MoonTierConfig.tierNames[i])
+                            .font(.subheadline)
+                            .foregroundColor(tierTextColor(i))
+                        Text("(\(moonTierConfig.tierRangeLabel(i)))")
+                            .font(.caption)
+                            .foregroundColor(tierSecondaryColor(i))
+                        Spacer()
+                        Text("\(Int(moonTierConfig.minSeparations[i]))\u{00B0} sep")
+                            .font(.subheadline)
+                            .foregroundColor(tierSecondaryColor(i))
+                    }
+                    Slider(
+                        value: $moonTierConfig.minSeparations[i],
+                        in: 0...180, step: 5
+                    )
+                    .tint(tierTextColor(i))
+                }
+                .listRowBackground(tierRowColor(i))
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("Full Tier")
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                    Text("(>\(Int(moonTierConfig.maxMoonPhase))%)")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                    Spacer()
+                    Text("No imaging")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                }
+                HStack {
+                    Text("Cutoff")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.6))
+                    Slider(value: $moonTierConfig.maxMoonPhase, in: 25...100, step: 5)
+                }
+            }
+            .listRowBackground(Color(white: 0.49))
+        } header: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Moon Phase (Angular Separation)")
+                Text("Minimum angular separation required between target and moon during each moon phase")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .textCase(.none)
+            }
+        }
+    }
+
+    // MARK: - Moon Tier Colors
+
+    /// Background colors matching the chart bar grayscale (black → subdued gray)
+    private func tierRowColor(_ index: Int) -> Color {
+        // Midpoints: New ~5%, Crescent ~18%, Quarter ~38%, Gibbous ~63%
+        let midpoints: [Double] = [0.05, 0.18, 0.38, 0.63]
+        let t = midpoints[index]
+        let w = 0.03 + 0.52 * t
+        return Color(white: w)
+    }
+
+    /// Text color that's readable on each tier background
+    private func tierTextColor(_ index: Int) -> Color {
+        index <= 2 ? .white : .black
+    }
+
+    private func tierSecondaryColor(_ index: Int) -> Color {
+        index <= 2 ? .white.opacity(0.6) : .black.opacity(0.6)
     }
 
     // MARK: - Computed Helpers

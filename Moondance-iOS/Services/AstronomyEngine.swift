@@ -7,23 +7,31 @@ nonisolated struct AstronomyEngine: Sendable {
 
     // MARK: - Public API
 
-    /// Calculate moon and target data over a date range, matching the Python API.
+    /// Calculate moon and target data over a date range.
+    /// Accepts arrays for multi-target comparison (up to 3 targets).
     static func calculate(
         latitude: Double,
         longitude: Double,
         elevation: Double,
         timezone: String,
-        targetRA: Double,   // degrees
-        targetDec: Double,  // degrees
+        targetRAs: [Double],      // degrees
+        targetDecs: [Double],     // degrees
+        targetNames: [String],
         startDate: Date,
         endDate: Date,
-        observationHour: Int
+        observationHour: Int,
+        minAltitudes: [Double] = [30, 30, 30, 30, 30, 30, 30, 30],
+        duskDawnBufferHours: Double = 1.0
     ) -> CalculationResult {
         let tz = TimeZone(identifier: timezone) ?? .current
         let calendar = Calendar.current
 
         var days: [DayResult] = []
         var current = startDate
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d"
+        formatter.timeZone = tz
 
         while current <= endDate {
             // Build observation datetime in the user's timezone
@@ -55,43 +63,101 @@ nonisolated struct AstronomyEngine: Sendable {
             )
             let phase = (1.0 - cos(elongation.degreesToRadians)) / 2.0 * 100.0
 
-            // Target position
-            let targetAltAz = equatorialToAltAz(
-                ra: targetRA, dec: targetDec,
-                jd: jd, lat: latitude, lon: longitude
+            // Bar chart: find sunset/sunrise (shared across all targets)
+            var sunsetComps = calendar.dateComponents(in: tz, from: current)
+            sunsetComps.hour = 18; sunsetComps.minute = 0; sunsetComps.second = 0
+            let sunsetApprox = calendar.date(from: sunsetComps)!
+            let sunset = findSunset(near: sunsetApprox, latitude: latitude, longitude: longitude)
+
+            var sunriseComps = calendar.dateComponents(in: tz, from: current)
+            sunriseComps.hour = 6; sunriseComps.minute = 0; sunriseComps.second = 0
+            let sunriseNextDay = calendar.date(byAdding: .day, value: 1, to: calendar.date(from: sunriseComps)!)!
+            let sunrise = findSunrise(near: sunriseNextDay, latitude: latitude, longitude: longitude)
+
+            let darknessStart = sunset.addingTimeInterval(duskDawnBufferHours * 3600)
+            let darknessEnd = sunrise.addingTimeInterval(-duskDawnBufferHours * 3600)
+            let darkHours = max(0, darknessEnd.timeIntervalSince(darknessStart) / 3600.0)
+
+            // Midnight = 00:00 of the next calendar day (center of the observing night)
+            var midnightComps = calendar.dateComponents(in: tz, from: current)
+            midnightComps.hour = 0; midnightComps.minute = 0; midnightComps.second = 0
+            let midnightToday = calendar.date(from: midnightComps)!
+            let midnight = calendar.date(byAdding: .day, value: 1, to: midnightToday)!
+
+            let nightWin = NightWindow(
+                sunsetTime: sunset,
+                sunriseTime: sunrise,
+                darknessStart: darknessStart,
+                darknessEnd: darknessEnd,
+                darkHours: (darkHours * 10).rounded() / 10,
+                midnight: midnight
             )
 
-            // Angular separation between moon and target (in alt/az)
-            let separation = angularSeparationAltAz(
-                alt1: moonAltAz.alt, az1: moonAltAz.az,
-                alt2: targetAltAz.alt, az2: targetAltAz.az
-            )
-
-            // Imaging window
-            let window = calculateImagingWindow(
-                targetRA: targetRA, targetDec: targetDec,
+            // Moon visibility during darkness
+            let moonVis = findMoonVisibility(
                 latitude: latitude, longitude: longitude,
-                obsDate: obsDate, tz: tz, calendar: calendar
+                darknessStart: darknessStart, darknessEnd: darknessEnd
             )
 
-            let formatter = DateFormatter()
-            formatter.dateFormat = "M/d"
-            formatter.timeZone = tz
+            // Calculate per-target results
+            var targetResults: [TargetNightResult] = []
+            for i in 0..<targetRAs.count {
+                let tRA = targetRAs[i]
+                let tDec = targetDecs[i]
+                let tName = targetNames[i]
+
+                let targetAltAz = equatorialToAltAz(
+                    ra: tRA, dec: tDec,
+                    jd: jd, lat: latitude, lon: longitude
+                )
+
+                let separation = angularSeparationAltAz(
+                    alt1: moonAltAz.alt, az1: moonAltAz.az,
+                    alt2: targetAltAz.alt, az2: targetAltAz.az
+                )
+
+                let window = calculateImagingWindow(
+                    targetRA: tRA, targetDec: tDec,
+                    latitude: latitude, longitude: longitude,
+                    obsDate: obsDate, tz: tz, calendar: calendar
+                )
+
+                let visibility = findTargetVisibility(
+                    targetRA: tRA, targetDec: tDec,
+                    latitude: latitude, longitude: longitude,
+                    darknessStart: darknessStart, darknessEnd: darknessEnd,
+                    minAltitudes: minAltitudes
+                )
+
+                targetResults.append(TargetNightResult(
+                    targetName: tName,
+                    colorIndex: i,
+                    targetAlt: (targetAltAz.alt * 10).rounded() / 10,
+                    angularSeparation: (separation * 10).rounded() / 10,
+                    imagingWindow: window,
+                    visibility: visibility
+                ))
+            }
 
             days.append(DayResult(
                 date: current,
                 dateLabel: formatter.string(from: current),
                 moonAlt: (moonAltAz.alt * 10).rounded() / 10,
                 moonPhase: phase.rounded(),
-                targetAlt: (targetAltAz.alt * 10).rounded() / 10,
-                angularSeparation: (separation * 10).rounded() / 10,
-                imagingWindow: window
+                nightWindow: nightWin,
+                moonVisibility: moonVis,
+                targetResults: targetResults
             ))
 
             current = calendar.date(byAdding: .day, value: 1, to: current)!
         }
 
-        return CalculationResult(days: days)
+        return CalculationResult(
+            days: days,
+            minAltitudeThreshold: minAltitudes.reduce(0, +) / Double(max(minAltitudes.count, 1)),
+            duskDawnBufferHours: duskDawnBufferHours,
+            targetNames: targetNames
+        )
     }
 
     // MARK: - Julian Date
@@ -442,6 +508,161 @@ nonisolated struct AstronomyEngine: Sendable {
 
         let duration = endTime.timeIntervalSince(obsDate) / 3600.0
         return ImagingWindow(durationHours: (duration * 10).rounded() / 10, startTime: obsDate, endTime: endTime)
+    }
+
+    /// Find sunset time near an approximate date by checking when sun altitude drops below ~0.
+    static func findSunset(near approx: Date, latitude: Double, longitude: Double) -> Date {
+        var lastAbove: Date = approx
+        for minuteOffset in stride(from: -240, through: 120, by: 5) {
+            let testDate = approx.addingTimeInterval(Double(minuteOffset) * 60)
+            let jd = julianDate(from: testDate)
+            let sunEq = sunEquatorial(jd: jd)
+            let sunAltAz = equatorialToAltAz(ra: sunEq.ra, dec: sunEq.dec, jd: jd, lat: latitude, lon: longitude)
+            if sunAltAz.alt > -0.5 {
+                lastAbove = testDate
+            } else if lastAbove != approx {
+                return testDate
+            }
+        }
+        return lastAbove
+    }
+
+    /// Interpolated minimum altitude for a given azimuth using 8-cardinal values.
+    /// `minAltitudes` is [N, NE, E, SE, S, SW, W, NW] (8 values at 0°, 45°, ..., 315°).
+    static func interpolatedMinAltitude(forAzimuth azimuth: Double, minAltitudes: [Double]) -> Double {
+        guard minAltitudes.count == 8 else { return minAltitudes.first ?? 30 }
+        let az = azimuth.mod(360)
+        let sector = az / 45.0
+        let lower = Int(sector) % 8
+        let upper = (lower + 1) % 8
+        let blend = sector - Double(Int(sector))
+        return minAltitudes[lower] * (1.0 - blend) + minAltitudes[upper] * blend
+    }
+
+    /// Find when the target is above the directional minimum altitude during the darkness window.
+    static func findTargetVisibility(
+        targetRA: Double, targetDec: Double,
+        latitude: Double, longitude: Double,
+        darknessStart: Date, darknessEnd: Date,
+        minAltitudes: [Double]
+    ) -> TargetVisibilitySpan? {
+        let stepSeconds: TimeInterval = 10 * 60  // 10-minute steps
+        let totalSeconds = darknessEnd.timeIntervalSince(darknessStart)
+        guard totalSeconds > 0 else { return nil }
+
+        var riseTime: Date? = nil
+        var setTime: Date? = nil
+        var wasAbove = false
+
+        // Check darknessStart
+        let jdStart = julianDate(from: darknessStart)
+        let startAltAz = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: jdStart, lat: latitude, lon: longitude)
+        let startMinAlt = interpolatedMinAltitude(forAzimuth: startAltAz.az, minAltitudes: minAltitudes)
+        if startAltAz.alt >= startMinAlt {
+            riseTime = darknessStart
+            wasAbove = true
+        }
+
+        // Walk through the night
+        var t: TimeInterval = stepSeconds
+        while t <= totalSeconds {
+            let checkTime = darknessStart.addingTimeInterval(t)
+            let jd = julianDate(from: checkTime)
+            let altAz = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: jd, lat: latitude, lon: longitude)
+            let minAlt = interpolatedMinAltitude(forAzimuth: altAz.az, minAltitudes: minAltitudes)
+            let isAbove = altAz.alt >= minAlt
+
+            if isAbove && !wasAbove {
+                riseTime = checkTime
+            } else if !isAbove && wasAbove {
+                setTime = checkTime
+                break
+            }
+            wasAbove = isAbove
+            t += stepSeconds
+        }
+
+        guard let rise = riseTime else { return nil }
+        let set = setTime ?? darknessEnd
+
+        let riseOffset = rise.timeIntervalSince(darknessStart) / 3600.0
+        let setOffset = set.timeIntervalSince(darknessStart) / 3600.0
+        let duration = set.timeIntervalSince(rise) / 3600.0
+
+        return TargetVisibilitySpan(
+            riseTime: rise,
+            setTime: set,
+            durationHours: (duration * 10).rounded() / 10,
+            riseOffsetHours: (riseOffset * 10).rounded() / 10,
+            setOffsetHours: (setOffset * 10).rounded() / 10
+        )
+    }
+
+    /// Find when the moon is above the horizon during the darkness window.
+    /// Unlike deep-sky targets, the moon moves ~0.5°/hr, so we must recalculate
+    /// its RA/Dec at each timestep.
+    static func findMoonVisibility(
+        latitude: Double, longitude: Double,
+        darknessStart: Date, darknessEnd: Date
+    ) -> TargetVisibilitySpan? {
+        let stepSeconds: TimeInterval = 10 * 60  // 10-minute steps
+        let totalSeconds = darknessEnd.timeIntervalSince(darknessStart)
+        guard totalSeconds > 0 else { return nil }
+
+        var riseTime: Date? = nil
+        var setTime: Date? = nil
+        var wasAbove = false
+
+        // Check darknessStart
+        let jdStart = julianDate(from: darknessStart)
+        let moonEqStart = moonEquatorial(jd: jdStart)
+        let startAltAz = equatorialToAltAz(
+            ra: moonEqStart.ra, dec: moonEqStart.dec,
+            jd: jdStart, lat: latitude, lon: longitude
+        )
+        if startAltAz.alt >= 0 {
+            riseTime = darknessStart
+            wasAbove = true
+        }
+
+        // Walk through the night
+        var t: TimeInterval = stepSeconds
+        while t <= totalSeconds {
+            let checkTime = darknessStart.addingTimeInterval(t)
+            let jd = julianDate(from: checkTime)
+            let moonEq = moonEquatorial(jd: jd)
+            let altAz = equatorialToAltAz(
+                ra: moonEq.ra, dec: moonEq.dec,
+                jd: jd, lat: latitude, lon: longitude
+            )
+            let isAbove = altAz.alt >= 0
+
+            if isAbove && !wasAbove {
+                riseTime = checkTime
+            } else if !isAbove && wasAbove {
+                setTime = checkTime
+                break
+            }
+            wasAbove = isAbove
+            t += stepSeconds
+        }
+
+        guard let rise = riseTime else { return nil }
+        let set = setTime ?? (wasAbove ? darknessEnd : rise)
+
+        let riseOffset = rise.timeIntervalSince(darknessStart) / 3600.0
+        let setOffset = set.timeIntervalSince(darknessStart) / 3600.0
+        let duration = set.timeIntervalSince(rise) / 3600.0
+
+        guard duration > 0 else { return nil }
+
+        return TargetVisibilitySpan(
+            riseTime: rise,
+            setTime: set,
+            durationHours: (duration * 10).rounded() / 10,
+            riseOffsetHours: (riseOffset * 10).rounded() / 10,
+            setOffsetHours: (setOffset * 10).rounded() / 10
+        )
     }
 
     /// Find sunrise time near an approximate date by checking when sun altitude crosses 0.

@@ -5,19 +5,23 @@ struct ContentView: View {
 
     @AppStorage("selectedLocationId") private var savedLocationId: String = "atlanta"
     @AppStorage("savedLocationJSON") private var savedLocationJSON: String = ""
-    @AppStorage("selectedTargetId") private var savedTargetId: String = "m42"
+    @AppStorage("selectedTargetIds") private var savedTargetIds: String = "[\"m42\"]"
     @AppStorage("observationHour") private var savedObservationHour: Int = 22
     @AppStorage("useCustomLocation") private var useCustomLocation: Bool = false
-    @AppStorage("useCustomTarget") private var useCustomTarget: Bool = false
     @AppStorage("customLat") private var customLat: String = ""
     @AppStorage("customLon") private var customLon: String = ""
     @AppStorage("customElevation") private var customElevation: String = "0"
     @AppStorage("customTimezone") private var customTimezone: String = "America/New_York"
-    @AppStorage("customRA") private var customRA: String = ""
-    @AppStorage("customDec") private var customDec: String = ""
+    @AppStorage("directionalAltitudes") private var directionalAltitudesJSON: String = "[30,30,30,30,30,30,30,30]"
+    @AppStorage("duskDawnBuffer") private var duskDawnBuffer: Double = 1.0
+    @AppStorage("dateRangeDays") private var dateRangeDays: Double = 90
+    @AppStorage("moonTierConfigJSON") private var moonTierConfigJSON: String = ""
+
+    @State private var directionalAltitudes: DirectionalAltitudes = .defaultValues
+    @State private var moonTierConfig: MoonTierConfig = .defaults
 
     @State private var selectedLocation: Location?
-    @State private var selectedTarget: Target?
+    @State private var selectedTargets: [Target] = []
     @State private var startDate = Date()
     @State private var observationTime = Calendar.current.date(
         from: DateComponents(hour: 22, minute: 0)
@@ -30,6 +34,7 @@ struct ContentView: View {
     @State private var shouldScrollToChart = false
     @State private var showFeedback = false
     @State private var feedbackScreenshot: UIImage?
+    @State private var showTargetPicker = false
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -38,36 +43,50 @@ struct ContentView: View {
         verticalSizeClass == .compact
     }
 
+    private let targetColors: [Color] = [
+        .cyan.opacity(0.8),
+        .orange.opacity(0.8),
+        .pink.opacity(0.8),
+        .purple.opacity(0.8),
+        .teal.opacity(0.8),
+        .blue.opacity(0.8)
+    ]
+
+    private var maxTargets: Int {
+        let days = Int(dateRangeDays)
+        if days <= 120 { return 6 }
+        if days <= 180 { return 4 }
+        return 2
+    }
+
     private var chartTitle: String {
-        let targetName = selectedTarget?.name ?? "Target"
+        let targetLabel: String
+        switch selectedTargets.count {
+        case 0: targetLabel = "Target"
+        case 1: targetLabel = selectedTargets[0].name
+        case 2: targetLabel = "\(selectedTargets[0].name) & \(selectedTargets[1].name)"
+        default:
+            let names = selectedTargets.map { $0.name }.joined(separator: ", ")
+            if names.count <= 40 {
+                targetLabel = names
+            } else {
+                targetLabel = "\(selectedTargets.count) targets"
+            }
+        }
+
         let locationName = selectedLocation?.name ?? "Location"
-
-        // Get the location's timezone
-        let tzIdentifier = selectedLocation?.timezone ?? customTimezone
-        let tz = TimeZone(identifier: tzIdentifier) ?? .current
-        let tzAbbrev = tz.abbreviation() ?? tzIdentifier
-
-        // Show the observation hour - the picker hour is used directly as local time at the location
-        let hour = Calendar.current.component(.hour, from: observationTime)
-        let hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour)
-        let ampm = hour < 12 ? "AM" : "PM"
-        let timeStr = "\(hour12):00 \(ampm) local"
 
         let dateFmt = DateFormatter()
         dateFmt.dateFormat = "MMM d"
         let startStr = dateFmt.string(from: startDate)
-        let endDate = Calendar.current.date(byAdding: .day, value: 29, to: startDate) ?? startDate
+        let endDate = Calendar.current.date(byAdding: .day, value: Int(dateRangeDays) - 1, to: startDate) ?? startDate
         let endStr = dateFmt.string(from: endDate)
 
-        return "\(targetName) from \(locationName) at \(timeStr) \(tzAbbrev) (\(startStr) – \(endStr))"
+        return "\(targetLabel) from \(locationName) (\(startStr) \u{2013} \(endStr))"
     }
 
     private var isFormValid: Bool {
-        if useCustomTarget {
-            guard Double(customRA) != nil, Double(customDec) != nil else { return false }
-        } else {
-            guard selectedTarget != nil else { return false }
-        }
+        guard !selectedTargets.isEmpty else { return false }
         if useCustomLocation {
             guard Double(customLat) != nil, Double(customLon) != nil else { return false }
             guard !customTimezone.isEmpty else { return false }
@@ -80,18 +99,16 @@ struct ContentView: View {
     var body: some View {
         Group {
             if isLandscape, let result = calculationResult {
-                // Landscape: full-screen chart
                 landscapeChart(result: result)
                     .preferredColorScheme(.dark)
                     .statusBarHidden()
             } else {
-                // Portrait: normal form layout
                 portraitView
             }
         }
         .sheet(isPresented: $showFeedback) {
             FeedbackView(
-                selectedTarget: selectedTarget,
+                selectedTarget: selectedTargets.first,
                 selectedLocation: selectedLocation,
                 startDate: startDate,
                 observationTime: observationTime,
@@ -108,12 +125,13 @@ struct ContentView: View {
             let safeRight = geo.safeAreaInsets.trailing
             let safeBottom = geo.safeAreaInsets.bottom
             let safeTop = geo.safeAreaInsets.top
-            let verticalChrome: CGFloat = 110 // title + toggle + legend + x-axis labels + spacing
+            let verticalChrome: CGFloat = 110
 
-            ChartView(
+            NightBarChartView(
                 result: result,
                 title: chartTitle,
-                chartHeight: geo.size.height - verticalChrome - safeTop - safeBottom
+                chartHeight: geo.size.height - verticalChrome - safeTop - safeBottom,
+                moonTierConfig: moonTierConfig
             )
             .padding(.leading, safeLeft + 40)
             .padding(.trailing, max(safeRight, 16))
@@ -158,20 +176,7 @@ struct ContentView: View {
         NavigationStack {
             ScrollViewReader { scrollProxy in
                 Form {
-                    SettingsFormContent(
-                        selectedLocation: $selectedLocation,
-                        selectedTarget: $selectedTarget,
-                        startDate: $startDate,
-                        observationTime: $observationTime,
-                        customLat: $customLat,
-                        customLon: $customLon,
-                        customElevation: $customElevation,
-                        customTimezone: $customTimezone,
-                        useCustomLocation: $useCustomLocation,
-                        useCustomTarget: $useCustomTarget,
-                        customRA: $customRA,
-                        customDec: $customDec
-                    )
+                    targetSection
 
                     if isCalculating {
                         Section {
@@ -185,14 +190,21 @@ struct ContentView: View {
 
                     if let result = calculationResult {
                         Section {
-                            ChartView(result: result, title: chartTitle)
+                            NightBarChartView(
+                                result: result,
+                                title: chartTitle,
+                                moonTierConfig: moonTierConfig
+                            )
                         } header: {
-                            Text("Chart — rotate for fullscreen")
+                            Text("Nightly Visibility \u{2014} rotate for fullscreen")
                         }
                         .id("chartSection")
 
                         Section {
-                            SummaryView(result: result)
+                            SummaryView(
+                                result: result,
+                                moonTierConfig: moonTierConfig
+                            )
                         } header: {
                             Text("Recommendations")
                         }
@@ -245,7 +257,7 @@ struct ContentView: View {
                     .disabled(!isFormValid || isCalculating)
                     .padding(.horizontal)
 
-                    Text("See the Show Astro v0.8")
+                    Text("See the Show Astro v0.9")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -255,6 +267,28 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.inline)
             .preferredColorScheme(.dark)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    NavigationLink {
+                        SettingsPageView(
+                            selectedLocation: $selectedLocation,
+                            selectedTargets: $selectedTargets,
+                            startDate: $startDate,
+                            observationTime: $observationTime,
+                            customLat: $customLat,
+                            customLon: $customLon,
+                            customElevation: $customElevation,
+                            customTimezone: $customTimezone,
+                            useCustomLocation: $useCustomLocation,
+                            directionalAltitudes: $directionalAltitudes,
+                            duskDawnBuffer: $duskDawnBuffer,
+                            dateRangeDays: $dateRangeDays,
+                            moonTierConfig: $moonTierConfig,
+                            onSave: saveSettings
+                        )
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                }
                 ToolbarItem(placement: .principal) {
                     VStack(spacing: 0) {
                         Text("Moondance")
@@ -276,7 +310,62 @@ struct ContentView: View {
             .sheet(isPresented: $showShareSheet) {
                 ShareSheet(items: shareItems)
             }
+            .sheet(isPresented: $showTargetPicker) {
+                NavigationStack {
+                    SearchableTargetPicker(
+                        selectedTargets: $selectedTargets,
+                        isPresented: $showTargetPicker,
+                        maxTargets: maxTargets
+                    )
+                }
+            }
             .onAppear(perform: restoreSettings)
+        }
+    }
+
+    // MARK: - Target Section
+
+    private var targetSection: some View {
+        Section {
+            ForEach(Array(selectedTargets.enumerated()), id: \.element.id) { index, target in
+                HStack {
+                    Circle()
+                        .fill(targetColors[index])
+                        .frame(width: 10, height: 10)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(target.name)
+                        Text("RA: \(target.ra, specifier: "%.2f")\u{00B0}  Dec: \(target.dec, specifier: "%.2f")\u{00B0}")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Button {
+                        selectedTargets.remove(at: index)
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Button {
+                showTargetPicker = true
+            } label: {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(selectedTargets.count >= maxTargets ? .secondary : .accentColor)
+                    Text(selectedTargets.isEmpty ? "Select Target" : "Add Target")
+                        .foregroundColor(selectedTargets.count >= maxTargets ? .secondary : .primary)
+                    Spacer()
+                    Text("\(selectedTargets.count)/\(maxTargets)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .disabled(selectedTargets.count >= maxTargets)
+        } header: {
+            Text("Targets")
         }
     }
 
@@ -303,31 +392,16 @@ struct ContentView: View {
             timezone = loc.timezone
         } else { return }
 
-        let ra: Double
-        let dec: Double
+        let targetRAs = selectedTargets.map { $0.ra }
+        let targetDecs = selectedTargets.map { $0.dec }
+        let targetNames = selectedTargets.map { $0.name }
 
-        if useCustomTarget {
-            ra = Double(customRA) ?? 0
-            dec = Double(customDec) ?? 0
-        } else if let target = selectedTarget {
-            ra = target.ra
-            dec = target.dec
-        } else { return }
-
-        // Extract hour - this is the hour the user selected in their local timezone
-        // We want to use this same hour in the observation location's timezone
         let hour = Calendar.current.component(.hour, from: observationTime)
         let calcStartDate = startDate
+        let calcEndDate = Calendar.current.date(byAdding: .day, value: Int(dateRangeDays) - 1, to: startDate) ?? startDate
 
-        // DEBUG: Print calculation parameters
-        print("=== CALCULATION DEBUG ===")
-        print("Location: \(selectedLocation?.name ?? "custom") at lat=\(lat), lon=\(lon)")
-        print("Timezone: \(timezone)")
-        print("Observation hour: \(hour)")
-        print("Target: RA=\(ra), Dec=\(dec)")
-        print("Start date: \(calcStartDate)")
-        print("=========================")
-        let calcEndDate = Calendar.current.date(byAdding: .day, value: 29, to: startDate) ?? startDate
+        let calcMinAlts = directionalAltitudes.values
+        let calcBuffer = duskDawnBuffer
 
         Task.detached(priority: .userInitiated) {
             let result = AstronomyEngine.calculate(
@@ -335,17 +409,19 @@ struct ContentView: View {
                 longitude: lon,
                 elevation: elevation,
                 timezone: timezone,
-                targetRA: ra,
-                targetDec: dec,
+                targetRAs: targetRAs,
+                targetDecs: targetDecs,
+                targetNames: targetNames,
                 startDate: calcStartDate,
                 endDate: calcEndDate,
-                observationHour: hour
+                observationHour: hour,
+                minAltitudes: calcMinAlts,
+                duskDawnBufferHours: calcBuffer
             )
             await MainActor.run {
                 calculationResult = result
                 isCalculating = false
                 shouldScrollToChart = true
-                // Rotate to landscape after a brief delay for scroll to complete
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     rotateToLandscape()
                 }
@@ -357,10 +433,16 @@ struct ContentView: View {
 
     private func saveSettings() {
         savedLocationId = selectedLocation?.id ?? ""
-        savedTargetId = selectedTarget?.id ?? ""
         savedObservationHour = Calendar.current.component(.hour, from: observationTime)
+        directionalAltitudesJSON = directionalAltitudes.jsonString
+        moonTierConfigJSON = moonTierConfig.jsonString
 
-        // Save full location data for GPS/searched locations
+        let targetIds = selectedTargets.map { $0.id }
+        if let jsonData = try? JSONEncoder().encode(targetIds),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            savedTargetIds = jsonString
+        }
+
         if let loc = selectedLocation,
            loc.id.hasPrefix("gps") || loc.id.hasPrefix("search-") {
             if let jsonData = try? JSONEncoder().encode(loc),
@@ -375,7 +457,6 @@ struct ContentView: View {
     private func restoreSettings() {
         let dm = DataManager.shared
 
-        // Try to restore GPS/searched location from JSON first
         if !savedLocationJSON.isEmpty,
            let jsonData = savedLocationJSON.data(using: .utf8),
            let loc = try? JSONDecoder().decode(Location.self, from: jsonData) {
@@ -385,12 +466,26 @@ struct ContentView: View {
                 ?? dm.locations.first
         }
 
-        selectedTarget = dm.targets.first { $0.id == savedTargetId }
-            ?? dm.targets.first
+        if let jsonData = savedTargetIds.data(using: .utf8),
+           let ids = try? JSONDecoder().decode([String].self, from: jsonData) {
+            selectedTargets = ids.compactMap { id in
+                dm.targets.first { $0.id == id }
+            }
+        }
+        if selectedTargets.isEmpty {
+            if let first = dm.targets.first {
+                selectedTargets = [first]
+            }
+        }
 
         if let hour = Calendar.current.date(from: DateComponents(hour: savedObservationHour)) {
             observationTime = hour
         }
+
+        directionalAltitudes = DirectionalAltitudes.from(jsonString: directionalAltitudesJSON)
+        moonTierConfig = moonTierConfigJSON.isEmpty
+            ? .defaults
+            : MoonTierConfig.from(jsonString: moonTierConfigJSON)
     }
 
     // MARK: - Export
@@ -412,7 +507,13 @@ struct ContentView: View {
     @MainActor
     private func exportChart() {
         guard let result = calculationResult else { return }
-        let renderer = ImageRenderer(content: ChartView(result: result, title: chartTitle).frame(width: 800, height: 400))
+        let renderer = ImageRenderer(
+            content: NightBarChartView(
+                result: result,
+                title: chartTitle,
+                moonTierConfig: moonTierConfig
+            ).frame(width: 800, height: 400)
+        )
         renderer.scale = 2.0
         if let image = renderer.uiImage {
             shareItems = [image]
@@ -424,16 +525,12 @@ struct ContentView: View {
 
     private func rotateToLandscape() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
-        windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscapeRight)) { error in
-            // Silently ignore errors - user can manually rotate if needed
-        }
+        windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscapeRight)) { error in }
     }
 
     private func rotateToPortrait() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
-        windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait)) { error in
-            // Silently ignore errors - user can manually rotate if needed
-        }
+        windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait)) { error in }
     }
 
     // MARK: - Feedback
@@ -459,13 +556,11 @@ struct ContentView: View {
             return
         }
 
-        // Capture the landscape screenshot first
         let renderer = UIGraphicsImageRenderer(bounds: window.bounds)
         feedbackScreenshot = renderer.image { context in
             window.layer.render(in: context.cgContext)
         }
 
-        // Rotate to portrait, then show feedback after rotation completes
         rotateToPortrait()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             showFeedback = true

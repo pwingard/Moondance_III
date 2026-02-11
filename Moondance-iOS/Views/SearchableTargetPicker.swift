@@ -1,23 +1,46 @@
 import SwiftUI
 
 struct SearchableTargetPicker: View {
-    @Binding var selectedTarget: Target?
+    @Binding var selectedTargets: [Target]
     @Binding var isPresented: Bool
+    var maxTargets: Int = 6
 
     @State private var searchText = ""
-
     private let dataManager = DataManager.shared
+
+    private let targetColors: [Color] = [
+        .cyan.opacity(0.8),
+        .orange.opacity(0.8),
+        .green.opacity(0.8),
+        .pink.opacity(0.8),
+        .yellow.opacity(0.8),
+        .purple.opacity(0.8)
+    ]
 
     var body: some View {
         List {
+            if !selectedTargets.isEmpty {
+                Section("Selected (\(selectedTargets.count)/\(maxTargets))") {
+                    ForEach(Array(selectedTargets.enumerated()), id: \.element.id) { index, target in
+                        HStack {
+                            Circle()
+                                .fill(targetColors[index])
+                                .frame(width: 10, height: 10)
+                            Text(target.name)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.accentColor)
+                        }
+                    }
+                }
+            }
+
             ForEach(filteredGroups, id: \.0) { group in
                 Section(header: Text(group.0)) {
                     ForEach(group.1) { target in
                         Button {
-                            selectedTarget = target
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                isPresented = false
-                            }
+                            toggleTarget(target)
                         } label: {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
@@ -34,17 +57,27 @@ struct SearchableTargetPicker: View {
                                     }
                                 }
                                 Spacer()
-                                if selectedTarget?.id == target.id {
-                                    Image(systemName: "checkmark")
-                                        .foregroundColor(.accentColor)
+                                if let index = selectedTargets.firstIndex(where: { $0.id == target.id }) {
+                                    HStack(spacing: 4) {
+                                        Circle()
+                                            .fill(targetColors[index])
+                                            .frame(width: 8, height: 8)
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(.accentColor)
+                                    }
+                                } else if selectedTargets.count >= maxTargets {
+                                    // At capacity — show disabled state
+                                    Image(systemName: "circle")
+                                        .foregroundColor(.secondary.opacity(0.3))
                                 }
                             }
                         }
+                        .disabled(selectedTargets.count >= maxTargets && !selectedTargets.contains(where: { $0.id == target.id }))
                     }
                 }
             }
         }
-        .navigationTitle("Select Target")
+        .navigationTitle("Select Targets")
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "Search objects...")
         .toolbar {
@@ -53,6 +86,14 @@ struct SearchableTargetPicker: View {
                     isPresented = false
                 }
             }
+        }
+    }
+
+    private func toggleTarget(_ target: Target) {
+        if let index = selectedTargets.firstIndex(where: { $0.id == target.id }) {
+            selectedTargets.remove(at: index)
+        } else if selectedTargets.count < maxTargets {
+            selectedTargets.append(target)
         }
     }
 
