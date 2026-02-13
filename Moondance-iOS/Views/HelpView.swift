@@ -8,72 +8,90 @@ struct HelpView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
 
-                    // MARK: - What the Chart Shows
+                    // MARK: - Overview
 
-                    sectionHeader("The Benefits of Moon Avoidance")
+                    sectionHeader("Understanding the Chart")
 
-                    Text("Moondance plots three key values over a 30-day window so you can find the best nights to image your target:")
+                    Text("Moondance plots nightly visibility for up to 6 deep-sky targets across your date range. Each night is a column. Rotate to landscape for the full-screen view.")
 
-                    bulletList([
-                        ("Moon Altitude (blue line)", "Where the moon sits in the sky. Below 0\u{00B0} means it has set \u{2014} that\u{2019}s ideal."),
-                        ("Target Altitude (white line)", "Where your deep-sky target sits. Higher is better \u{2014} above 30\u{00B0} is good, above 50\u{00B0} is excellent."),
-                        ("Angular Separation (orange dashed)", "The angle between the moon and your target. This is the most important factor for image quality.")
-                    ])
+                    // MARK: - Bar Columns
 
-                    // MARK: - Why Separation Matters
+                    sectionHeader("Target Bars")
 
-                    sectionHeader("Why Angular Separation Matters")
-
-                    Text("Even when the moon is above the horizon, you may still be able to image if your target is far enough away from it. The moon scatters light through the atmosphere, and that scattered light is brightest close to the moon and fades as you move away.")
-
-                    Text("The chart below shows how much moonlight affects sky brightness at different separations, based on the Krisciunas-Schaefer atmospheric scattering model used by professional observatories:")
-
-                    // Embedded graph
-                    Image("MoonSeparationGraph")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .cornerRadius(12)
-                        .padding(.vertical, 4)
-
-                    // MARK: - Key Takeaways
-
-                    sectionHeader("Key Takeaways")
+                    Text("Each column spans from dusk to dawn. Colored bars show when each target is above your minimum altitude (set per compass direction in Settings).")
 
                     bulletList([
-                        ("90\u{00B0} is optimal", "Minimum scattered moonlight. This is the sweet spot."),
-                        ("70\u{00B0}\u{2013}110\u{00B0} is excellent", "All within 15% of optimal. Don\u{2019}t stress about hitting exactly 90\u{00B0}."),
-                        ("60\u{00B0} is workable", "About 30% more moonlight than optimal. Narrowband filters help here."),
-                        ("Below 45\u{00B0} gets bad fast", "Nearly 50% more moonlight. Expect washed-out backgrounds."),
-                        ("Below 30\u{00B0} is rough", "74% more moonlight. Only viable with narrowband on bright targets.")
+                        ("Multiple targets", "Each target gets its own colored sub-bar within the column. Colors are assigned in order: purple, brown, blue, teal, navy, pink."),
+                        ("Bar height", "Taller bars mean more hours of visibility that night."),
+                        ("Tap a column", "Opens a detail sheet with a play-by-play narrative of imaging conditions throughout the night.")
                     ])
 
-                    // MARK: - Reading the Color Dots
+                    // MARK: - Rating Strips
 
-                    sectionHeader("Separation Color Coding")
+                    sectionHeader("Rating Color Strips")
 
-                    HStack(spacing: 16) {
-                        colorDot(.green, ">90\u{00B0} \u{2014} Excellent")
-                        colorDot(.yellow, "60\u{00B0}\u{2013}90\u{00B0} \u{2014} Good")
-                        colorDot(.red, "<60\u{00B0} \u{2014} Poor")
+                    Text("A thin colored strip at the base of each target bar shows the imaging rating for that target on that night:")
+
+                    HStack(spacing: 12) {
+                        ratingChip(.green, "Good")
+                        ratingChip(.yellow, "Allowable")
+                        ratingChip(.orange, "Mixed")
+                        ratingChip(.red, "No Imaging")
                     }
                     .padding(.vertical, 4)
 
-                    Text("The colored dots on the chart\u{2019}s separation line use this scale. Green nights are your best imaging opportunities.")
+                    bulletList([
+                        ("Green \u{2014} Good", "Moon is below the horizon or in its new phase during the target\u{2019}s visibility. Best conditions."),
+                        ("Yellow \u{2014} Allowable", "Moon is up but your angular separation settings are met. Imaging is viable per your configured thresholds."),
+                        ("Orange \u{2014} Mixed", "Part of the night is moon-free and part doesn\u{2019}t meet your settings. Some usable time."),
+                        ("Red \u{2014} No Imaging", "Angular separation doesn\u{2019}t meet your settings. The label \u{201C}per settings\u{201D} reminds you this is based on your configured thresholds, not physics.")
+                    ])
 
-                    // MARK: - Imaging Windows
+                    // MARK: - Moon Glow
 
-                    sectionHeader("Imaging Windows")
+                    sectionHeader("Moon Glow Background")
 
-                    Text("When you toggle \u{201C}Show Imaging Windows,\u{201D} colored bars appear on nights where your target is above 30\u{00B0} and the moon is either below the horizon or the separation is favorable. The bar color follows the same green/yellow/red scale.")
+                    Text("The white background glow behind the bars represents moon brightness throughout the night. Brighter glow = higher moon altitude \u{00D7} moon phase. A sharp edge shows moonrise or moonset. Dark background means no moon \u{2014} ideal conditions.")
 
-                    // MARK: - Moon Phase Markers
+                    // MARK: - Detail Sheet
 
-                    sectionHeader("Moon Phase Markers")
+                    sectionHeader("Tapping a Night")
 
-                    Text("The blue dots on the moon altitude line change size and color with the moon\u{2019}s phase \u{2014} small and dark for new moon, large and bright for full moon. Vertical dashed lines mark New Moon, First Quarter, Full Moon, and Third Quarter.")
+                    Text("Tap any column to see a detailed breakdown:")
 
-                    Text("The best imaging windows are typically in the days surrounding new moon, when the moon is below the horizon for most of the night.")
+                    bulletList([
+                        ("Play-by-play", "A flowing narrative describes each segment of the night: \u{201C}Good imaging for 3.2 hrs moon-free until 1:30 AM\u{201D} followed by \u{201C}No imaging for 2.1 hrs with 65% moon (per settings) until predawn.\u{201D}"),
+                        ("Target details", "Shows rise/set azimuths with 16-point compass directions, directional minimum altitudes, and whether the target was already up at dusk or still up at dawn."),
+                        ("Moon details", "Tap the moon line to see phase, rise/set times, and duration above the horizon.")
+                    ])
+
+                    // MARK: - Moon Tiers
+
+                    sectionHeader("Moon Tier Settings")
+
+                    Text("In Settings, you configure the minimum angular separation required between the moon and your target for each moon phase tier:")
+
+                    bulletList([
+                        ("New (0\u{2013}10%)", "Moon barely visible. Default: 10\u{00B0} separation required."),
+                        ("Crescent (11\u{2013}25%)", "Slim crescent. Default: 30\u{00B0} required."),
+                        ("Quarter (26\u{2013}50%)", "Half moon. Default: 60\u{00B0} required."),
+                        ("Gibbous (51%+)", "Bright moon. Default: 90\u{00B0} required.")
+                    ])
+
+                    Text("When the actual separation meets your tier threshold, the rating is \u{201C}Allowable.\u{201D} When the moon is below the horizon, separation doesn\u{2019}t matter \u{2014} it\u{2019}s always \u{201C}Good.\u{201D}")
                         .foregroundStyle(.secondary)
+
+                    // MARK: - Horizon Profile
+
+                    sectionHeader("Directional Horizon Profile")
+
+                    Text("Set a minimum altitude for each of 8 compass directions (N, NE, E, SE, S, SW, W, NW). Targets are only considered \u{201C}visible\u{201D} when they\u{2019}re above the threshold for their current azimuth. Use this to model treelines, buildings, or mountains on your horizon.")
+
+                    // MARK: - Suggestions
+
+                    sectionHeader("Smart Suggestions")
+
+                    Text("The Suggest button in the Targets section analyzes gaps in your selected targets\u{2019} visibility and recommends objects that fill unused night time. Suggestions are ranked by gap coverage and moon conditions. Targets not yet in season are flagged with their availability date.")
 
                     // MARK: - Tips
 
@@ -81,9 +99,29 @@ struct HelpView: View {
 
                     bulletList([
                         ("Best case", "Target high in the sky + moon below the horizon = perfect conditions."),
-                        ("Good case", "Moon is up but separation is >90\u{00B0} = still great for imaging."),
-                        ("Use filters", "Narrowband (Ha, OIII, SII) cuts through moonlight. Useful when separation is 45\u{00B0}\u{2013}70\u{00B0}."),
-                        ("Plan ahead", "Look at the 30-day trend to find multi-night stretches of good conditions.")
+                        ("Use the gap", "If your target sets at midnight, use Suggest to find targets for the second half of the night."),
+                        ("Narrowband helps", "Ha, OIII, SII filters cut through moonlight. Consider relaxing your tier thresholds when using narrowband."),
+                        ("Plan ahead", "Use a 90+ day range to find multi-night stretches and spot seasonal targets coming into view.")
+                    ])
+
+                    // MARK: - Why Separation Matters
+
+                    sectionHeader("Why Angular Separation Matters")
+
+                    Text("Even when the moon is above the horizon, you can image if your target is far enough away. The moon scatters light through the atmosphere \u{2014} brightest near the moon, fading with distance.")
+
+                    Image("MoonSeparationGraph")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .cornerRadius(12)
+                        .padding(.vertical, 4)
+
+                    bulletList([
+                        ("90\u{00B0} is optimal", "If you\u{2019}re going to image during the moon, 90\u{00B0} angular separation offers the least moonlight interference."),
+                        ("70\u{00B0}\u{2013}110\u{00B0} is a close second", "All within 15% of optimal."),
+                        ("60\u{00B0} is workable", "About 30% more moonlight. Narrowband helps."),
+                        ("Below 45\u{00B0}", "Nearly 50% more moonlight."),
+                        ("Below 30\u{00B0}", "74% more moonlight. Narrowband on bright targets only, if then.")
                     ])
 
                     Spacer(minLength: 40)
@@ -92,7 +130,7 @@ struct HelpView: View {
                 .padding(.top, 12)
             }
             .background(Color(.systemBackground))
-            .navigationTitle("Understanding the Chart")
+            .navigationTitle("Understanding the Charts")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -131,11 +169,13 @@ struct HelpView: View {
         .font(.subheadline)
     }
 
-    private func colorDot(_ color: Color, _ label: String) -> some View {
-        HStack(spacing: 6) {
-            Circle().fill(color).frame(width: 12, height: 12)
+    private func ratingChip(_ color: Color, _ label: String) -> some View {
+        HStack(spacing: 4) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(color)
+                .frame(width: 16, height: 8)
             Text(label)
-                .font(.caption)
+                .font(.caption2)
         }
     }
 }

@@ -8,8 +8,6 @@ struct FeedbackView: View {
     // Current app state for debugging
     let selectedTarget: Target?
     let selectedLocation: Location?
-    let startDate: Date
-    let observationTime: Date
     let screenshot: UIImage?
     var targetCount: Int = 0
     var maxTargets: Int = 0
@@ -176,12 +174,6 @@ struct FeedbackView: View {
     // MARK: - Settings Info
 
     private var settingsInfo: String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .medium
-
-        let timeFormatter = DateFormatter()
-        timeFormatter.timeStyle = .short
-
         return """
         Target: \(selectedTarget?.name ?? "None")
         Target RA: \(selectedTarget?.ra ?? 0)°
@@ -194,8 +186,6 @@ struct FeedbackView: View {
         Longitude: \(selectedLocation?.lon ?? 0)°
         Elevation: \(selectedLocation?.elevation ?? 0)m
         Timezone: \(selectedLocation?.timezone ?? "Unknown")
-        Start Date: \(dateFormatter.string(from: startDate))
-        Observation Time: \(timeFormatter.string(from: observationTime))
         """
     }
 

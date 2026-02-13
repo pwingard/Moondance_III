@@ -10,7 +10,7 @@ struct SummaryView: View {
                 .font(.headline)
 
             // Stats
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 statCard(
                     title: "Good",
                     value: "\(goodNights.count)",
@@ -18,16 +18,16 @@ struct SummaryView: View {
                     color: .green
                 )
                 statCard(
+                    title: "Allowable",
+                    value: "\(allowableNights.count)",
+                    subtitle: "meets settings",
+                    color: .yellow
+                )
+                statCard(
                     title: "Mixed",
                     value: "\(mixedNights.count)",
                     subtitle: "partial moon",
                     color: .orange
-                )
-                statCard(
-                    title: "Marginal",
-                    value: "\(marginalNights.count)",
-                    subtitle: "low separation",
-                    color: .yellow
                 )
                 statCard(
                     title: "Avoid",
@@ -143,12 +143,12 @@ struct SummaryView: View {
         result.days.filter { ratingForDay($0) == .good }
     }
 
-    private var mixedNights: [DayResult] {
-        result.days.filter { ratingForDay($0) == .mixed }
+    private var allowableNights: [DayResult] {
+        result.days.filter { ratingForDay($0) == .allowable }
     }
 
-    private var marginalNights: [DayResult] {
-        result.days.filter { ratingForDay($0) == .marginal }
+    private var mixedNights: [DayResult] {
+        result.days.filter { ratingForDay($0) == .mixed }
     }
 
     private var noImagingNights: [DayResult] {

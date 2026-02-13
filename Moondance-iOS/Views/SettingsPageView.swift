@@ -5,8 +5,6 @@ import SwiftUI
 struct SettingsPageView: View {
     @Binding var selectedLocation: Location?
     @Binding var selectedTargets: [Target]
-    @Binding var startDate: Date
-    @Binding var observationTime: Date
     @Binding var customLat: String
     @Binding var customLon: String
     @Binding var customElevation: String
@@ -26,8 +24,6 @@ struct SettingsPageView: View {
             SettingsFormContent(
                 selectedLocation: $selectedLocation,
                 selectedTargets: $selectedTargets,
-                startDate: $startDate,
-                observationTime: $observationTime,
                 customLat: $customLat,
                 customLon: $customLon,
                 customElevation: $customElevation,

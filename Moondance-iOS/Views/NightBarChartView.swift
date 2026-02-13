@@ -9,17 +9,18 @@ struct NightBarChartView: View {
 
     @State private var selectedDay: DayResult?
     @State private var selectedTarget: TargetNightResult?
+    @State private var showMoonDetail = false
     @State private var showHelp = false
 
     private let barSpacing: CGFloat = 4
 
     private let targetColors: [Color] = [
-        .cyan.opacity(0.8),
-        .orange.opacity(0.8),
-        .pink.opacity(0.8),
         .purple.opacity(0.8),
-        .teal.opacity(0.8),
-        .blue.opacity(0.8)
+        Color(red: 0.45, green: 0.25, blue: 0.1).opacity(0.8),  // dark brown
+        .blue.opacity(0.8),
+        .teal.opacity(0.8),                                       // teal
+        Color(red: 0.1, green: 0.1, blue: 0.5).opacity(0.8),    // navy blue
+        Color(red: 1.0, green: 0.7, blue: 0.85).opacity(0.8)    // light pink
     ]
 
     private var targetCount: Int {
@@ -29,11 +30,11 @@ struct NightBarChartView: View {
     /// Width of the full column (background + glow) for one night
     private var columnWidth: CGFloat {
         switch targetCount {
-        case 0, 1: return 24
-        case 2: return 28
-        case 3, 4: return 34
-        case 5, 6: return 40
-        default: return 46
+        case 0, 1: return 26
+        case 2: return 32
+        case 3, 4: return 38
+        case 5, 6: return 46
+        default: return 52
         }
     }
 
@@ -148,6 +149,11 @@ struct NightBarChartView: View {
                     targetDetailSheet(day: day, target: target)
                 }
             }
+            .sheet(isPresented: $showMoonDetail) {
+                if let day = selectedDay {
+                    moonDetailSheet(day: day)
+                }
+            }
         }
         .sheet(isPresented: $showHelp) {
             HelpView()
@@ -199,6 +205,23 @@ struct NightBarChartView: View {
                                 width: .fixed(subBarWidth)
                             )
                             .foregroundStyle(targetColors[tr.colorIndex])
+                            .position(by: .value("Target", tr.targetName))
+
+                            // Rating color strip at base of each sub-bar
+                            let baseHeight = 0.15  // ~9 minutes in chart units
+                            let rating = moonTierConfig.evaluateMoonAware(
+                                moonPhase: day.moonPhase,
+                                hoursMoonDown: tr.hoursMoonDown,
+                                hoursMoonUp: tr.hoursMoonUp,
+                                avgSeparationMoonUp: tr.avgSeparationMoonUp
+                            )
+                            BarMark(
+                                x: .value("Date", day.dateLabel),
+                                yStart: .value("BaseStart", visEnd - baseHeight),
+                                yEnd: .value("BaseEnd", visEnd),
+                                width: .fixed(subBarWidth)
+                            )
+                            .foregroundStyle(rating.color)
                             .position(by: .value("Target", tr.targetName))
                         }
                     }
@@ -286,26 +309,34 @@ struct NightBarChartView: View {
                 }
             }
 
-            // Moon summary
-            HStack(spacing: 4) {
-                Circle().fill(Color(white: 0.25 + 0.75 * min(max(day.moonPhase / 100.0, 0), 1)))
-                    .frame(width: 8, height: 8)
-                    .overlay(Circle().stroke(Color.yellow.opacity(0.5), lineWidth: 1))
-                Text("Moon \(day.moonPhase, specifier: "%.0f")%")
-                    .foregroundStyle(Color.yellow.opacity(0.8))
-                if day.moonVisibility != nil {
-                    Text("(visible)")
-                        .foregroundStyle(Color.yellow.opacity(0.5))
-                } else {
-                    Text("(below horizon)")
-                        .foregroundStyle(.secondary)
+            // Moon summary (tappable)
+            Button {
+                showMoonDetail = true
+            } label: {
+                HStack(spacing: 6) {
+                    Circle().fill(Color(white: 0.25 + 0.75 * min(max(day.moonPhase / 100.0, 0), 1)))
+                        .frame(width: 8, height: 8)
+                        .overlay(Circle().stroke(Color.yellow.opacity(0.5), lineWidth: 1))
+                    Text("Moon \(day.moonPhase, specifier: "%.0f")%")
+                        .foregroundStyle(Color.yellow.opacity(0.8))
+                    if day.moonVisibility != nil {
+                        Text("(visible)")
+                            .foregroundStyle(Color.yellow.opacity(0.5))
+                    } else {
+                        Text("(below horizon)")
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.white.opacity(0.3))
                 }
             }
 
             Divider().background(.white.opacity(0.3))
 
             // Tappable target list
-            Text("Tap a target for details:")
+            Text("Tap for details:")
                 .foregroundStyle(.secondary)
                 .font(.system(size: 9))
 
@@ -413,6 +444,80 @@ struct NightBarChartView: View {
         .presentationDetents([.medium])
     }
 
+    // MARK: - Moon Detail Sheet
+
+    private func moonDetailSheet(day: DayResult) -> some View {
+        NavigationStack {
+            List {
+                Section("Moon") {
+                    LabeledContent("Phase", value: String(format: "%.0f%%", day.moonPhase))
+                    if let moonVis = day.moonVisibility {
+                        if moonVis.riseTime == day.nightWindow?.darknessStart {
+                            Label {
+                                Text("Already up when darkness starts at \(formatTime(moonVis.riseTime))")
+                            } icon: {
+                                Image(systemName: "scope")
+                                    .foregroundStyle(.yellow)
+                            }
+                            .font(.caption)
+                        } else {
+                            Label {
+                                Text("Rises at \(formatTime(moonVis.riseTime))")
+                            } icon: {
+                                Image(systemName: "moonrise.fill")
+                                    .foregroundStyle(.yellow)
+                            }
+                            .font(.caption)
+                        }
+                        if moonVis.setTime == day.nightWindow?.darknessEnd {
+                            Label {
+                                Text("Still up at predawn \(formatTime(moonVis.setTime))")
+                            } icon: {
+                                Image(systemName: "scope")
+                                    .foregroundStyle(.yellow)
+                            }
+                            .font(.caption)
+                        } else {
+                            Label {
+                                Text("Sets at \(formatTime(moonVis.setTime))")
+                            } icon: {
+                                Image(systemName: "moonset.fill")
+                                    .foregroundStyle(.yellow)
+                            }
+                            .font(.caption)
+                        }
+                        LabeledContent("Duration", value: String(format: "%.1f hrs", moonVis.durationHours))
+                    } else {
+                        Label {
+                            Text("Below horizon all night")
+                        } icon: {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                        }
+                        .font(.caption)
+                    }
+                }
+
+                if let night = day.nightWindow {
+                    Section("Night") {
+                        LabeledContent("Darkness", value: "\(formatTime(night.darknessStart)) – \(formatTime(night.darknessEnd))")
+                        LabeledContent("Dark Hours", value: String(format: "%.1f hrs", night.darkHours))
+                    }
+                }
+            }
+            .navigationTitle("Moon – \(day.dateLabel)")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        showMoonDetail = false
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
     // MARK: - Imaging Segment Builder
 
     private struct ImagingSegment {
@@ -487,8 +592,9 @@ struct NightBarChartView: View {
             } else {
                 moonUpEnd = "moonset at \(formatTime(overlapEnd))"
             }
+            let perSettings = moonUpRating == .noImaging ? " (per settings)" : ""
             segments.append(ImagingSegment(
-                text: "\(quality.label) imaging for \(fmt(moonUpHours)) hrs \(moonDesc) until \(moonUpEnd)",
+                text: "\(quality.label) imaging for \(fmt(moonUpHours)) hrs \(moonDesc) until \(moonUpEnd)\(perSettings)",
                 icon: quality.icon,
                 color: quality.color
             ))
@@ -512,23 +618,44 @@ struct NightBarChartView: View {
     private func segmentQuality(_ rating: MoonTierConfig.ImagingRating) -> (label: String, icon: String, color: Color) {
         switch rating {
         case .good:      return ("Good", "checkmark.circle.fill", .green)
-        case .marginal:  return ("Fair", "questionmark.circle.fill", .yellow)
-        case .mixed:     return ("Fair", "questionmark.circle.fill", .yellow)
-        case .noImaging: return ("Poor", "xmark.circle.fill", .red)
+        case .allowable: return ("Allowable", "checkmark.circle.fill", .yellow)
+        case .mixed:     return ("Mixed", "circle.lefthalf.filled", .orange)
+        case .noImaging: return ("No imaging", "xmark.circle.fill", .red)
         }
     }
 
-    /// Simplified rating icon for tooltip: green ✓, yellow ?, red ✗
+    /// Simplified rating icon for tooltip: green ✓, yellow ✓, orange ◐, red ✗
     private func simpleRatingIcon(_ rating: MoonTierConfig.ImagingRating) -> (icon: String, color: Color) {
         switch rating {
-        case .good:               return ("checkmark.circle.fill", .green)
-        case .mixed, .marginal:   return ("questionmark.circle.fill", .yellow)
-        case .noImaging:          return ("xmark.circle.fill", .red)
+        case .good:      return ("checkmark.circle.fill", .green)
+        case .allowable: return ("checkmark.circle.fill", .yellow)
+        case .mixed:     return ("circle.lefthalf.filled", .orange)
+        case .noImaging: return ("xmark.circle.fill", .red)
         }
     }
 
     private func fmt(_ hours: Double) -> String {
         String(format: "%.1f", hours)
+    }
+
+    /// Worst rating across all targets for a given night (for column icon)
+    private func worstRating(for day: DayResult) -> MoonTierConfig.ImagingRating {
+        let priorities: [MoonTierConfig.ImagingRating] = [.noImaging, .mixed, .allowable, .good]
+        var worst = MoonTierConfig.ImagingRating.good
+        for tr in day.targetResults {
+            let rating = moonTierConfig.evaluateMoonAware(
+                moonPhase: day.moonPhase,
+                hoursMoonDown: tr.hoursMoonDown,
+                hoursMoonUp: tr.hoursMoonUp,
+                avgSeparationMoonUp: tr.avgSeparationMoonUp
+            )
+            if let ri = priorities.firstIndex(of: rating),
+               let wi = priorities.firstIndex(of: worst),
+               ri < wi {
+                worst = rating
+            }
+        }
+        return worst
     }
 
     // MARK: - Helpers

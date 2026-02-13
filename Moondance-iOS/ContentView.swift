@@ -6,7 +6,7 @@ struct ContentView: View {
     @AppStorage("selectedLocationId") private var savedLocationId: String = "atlanta"
     @AppStorage("savedLocationJSON") private var savedLocationJSON: String = ""
     @AppStorage("selectedTargetIds") private var savedTargetIds: String = "[\"m42\"]"
-    @AppStorage("observationHour") private var savedObservationHour: Int = 22
+    // observationHour removed — hardcoded to 22 (10 PM)
     @AppStorage("useCustomLocation") private var useCustomLocation: Bool = false
     @AppStorage("customLat") private var customLat: String = ""
     @AppStorage("customLon") private var customLon: String = ""
@@ -22,10 +22,6 @@ struct ContentView: View {
 
     @State private var selectedLocation: Location?
     @State private var selectedTargets: [Target] = []
-    @State private var startDate = Date()
-    @State private var observationTime = Calendar.current.date(
-        from: DateComponents(hour: 22, minute: 0)
-    ) ?? Date()
 
     @State private var calculationResult: CalculationResult?
     @State private var isCalculating = false
@@ -35,6 +31,10 @@ struct ContentView: View {
     @State private var showFeedback = false
     @State private var feedbackScreenshot: UIImage?
     @State private var showTargetPicker = false
+    @State private var showSuggestions = false
+    @State private var suggestions: [TargetSuggestion] = []
+    @State private var isLoadingSuggestions = false
+    @State private var showHelp = false
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -75,8 +75,9 @@ struct ContentView: View {
 
         let dateFmt = DateFormatter()
         dateFmt.dateFormat = "MMM d"
-        let startStr = dateFmt.string(from: startDate)
-        let endDate = Calendar.current.date(byAdding: .day, value: Int(dateRangeDays) - 1, to: startDate) ?? startDate
+        let today = Date()
+        let startStr = dateFmt.string(from: today)
+        let endDate = Calendar.current.date(byAdding: .day, value: Int(dateRangeDays) - 1, to: today) ?? today
         let endStr = dateFmt.string(from: endDate)
 
         return "\(targetLabel) from \(locationName) (\(startStr) \u{2013} \(endStr))"
@@ -107,8 +108,6 @@ struct ContentView: View {
             FeedbackView(
                 selectedTarget: selectedTargets.first,
                 selectedLocation: selectedLocation,
-                startDate: startDate,
-                observationTime: observationTime,
                 screenshot: feedbackScreenshot,
                 targetCount: selectedTargets.count,
                 maxTargets: maxTargets,
@@ -258,7 +257,19 @@ struct ContentView: View {
                     .disabled(!isFormValid || isCalculating)
                     .padding(.horizontal)
 
-                    Text("See the Show Astro v0.9")
+                    HStack(spacing: 4) {
+                        Text("See the Show Astro v0.9")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Button {
+                            showHelp = true
+                        } label: {
+                            Image(systemName: "questionmark.circle")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    Text("Follow @see_theShow on X")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -273,8 +284,6 @@ struct ContentView: View {
                         SettingsPageView(
                             selectedLocation: $selectedLocation,
                             selectedTargets: $selectedTargets,
-                            startDate: $startDate,
-                            observationTime: $observationTime,
                             customLat: $customLat,
                             customLon: $customLon,
                             customElevation: $customElevation,
@@ -292,11 +301,11 @@ struct ContentView: View {
                 }
                 ToolbarItem(placement: .principal) {
                     VStack(spacing: 0) {
-                        Text("Moondance")
+                        Text("Moondance III")
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                        Text("Lunar Sidestep Planner")
-                            .font(.caption)
+                        Text("Long Range Planner & Lunar Sidestepper")
+                            .font(.system(size: 9))
                             .foregroundColor(.secondary)
                     }
                 }
@@ -316,11 +325,31 @@ struct ContentView: View {
                     SearchableTargetPicker(
                         selectedTargets: $selectedTargets,
                         isPresented: $showTargetPicker,
-                        maxTargets: maxTargets
+                        maxTargets: maxTargets,
+                        latitude: useCustomLocation ? Double(customLat) : selectedLocation?.lat,
+                        directionalAltitudes: directionalAltitudes
                     )
                 }
             }
+            .sheet(isPresented: $showSuggestions) {
+                SuggestionView(
+                    suggestions: suggestions,
+                    selectedCount: selectedTargets.count,
+                    maxTargets: maxTargets,
+                    onAdd: { target in
+                        if selectedTargets.count < maxTargets {
+                            selectedTargets.append(target)
+                        }
+                    },
+                    onRemove: { target in
+                        selectedTargets.removeAll { $0.id == target.id }
+                    }
+                )
+            }
             .onAppear(perform: restoreSettings)
+            .sheet(isPresented: $showHelp) {
+                HelpView()
+            }
         }
     }
 
@@ -365,8 +394,75 @@ struct ContentView: View {
                 }
             }
             .disabled(selectedTargets.count >= maxTargets)
+
+            Button {
+                runSuggestions()
+            } label: {
+                HStack {
+                    if isLoadingSuggestions {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: "lightbulb.fill")
+                            .foregroundColor(.yellow)
+                    }
+                    Text("Suggest")
+                        .foregroundColor(canSuggest ? .primary : .secondary)
+                    Spacer()
+                }
+            }
+            .disabled(!canSuggest || isLoadingSuggestions)
         } header: {
             Text("Targets")
+        }
+    }
+
+    private var canSuggest: Bool {
+        !selectedTargets.isEmpty && (useCustomLocation ? Double(customLat) != nil : selectedLocation != nil)
+    }
+
+    private func runSuggestions() {
+        isLoadingSuggestions = true
+
+        let lat: Double
+        let lon: Double
+        let elev: Double
+        let tz: String
+        if useCustomLocation {
+            lat = Double(customLat) ?? 0
+            lon = Double(customLon) ?? 0
+            elev = Double(customElevation) ?? 0
+            tz = customTimezone
+        } else if let loc = selectedLocation {
+            lat = loc.lat
+            lon = loc.lon
+            elev = loc.elevation
+            tz = loc.timezone
+        } else { return }
+
+        let targets = selectedTargets
+        let days = Int(dateRangeDays)
+        let alts = directionalAltitudes.values
+        let config = moonTierConfig
+        let buffer = duskDawnBuffer
+
+        Task.detached(priority: .userInitiated) {
+            let results = SuggestionEngine.suggest(
+                selectedTargets: targets,
+                latitude: lat,
+                longitude: lon,
+                elevation: elev,
+                timezone: tz,
+                dateRangeDays: days,
+                minAltitudes: alts,
+                moonTierConfig: config,
+                duskDawnBufferHours: buffer
+            )
+            await MainActor.run {
+                suggestions = results
+                isLoadingSuggestions = false
+                showSuggestions = true
+            }
         }
     }
 
@@ -397,9 +493,9 @@ struct ContentView: View {
         let targetDecs = selectedTargets.map { $0.dec }
         let targetNames = selectedTargets.map { $0.name }
 
-        let hour = Calendar.current.component(.hour, from: observationTime)
-        let calcStartDate = startDate
-        let calcEndDate = Calendar.current.date(byAdding: .day, value: Int(dateRangeDays) - 1, to: startDate) ?? startDate
+        let hour = 22
+        let calcStartDate = Date()
+        let calcEndDate = Calendar.current.date(byAdding: .day, value: Int(dateRangeDays) - 1, to: calcStartDate) ?? calcStartDate
 
         let calcMinAlts = directionalAltitudes.values
         let calcBuffer = duskDawnBuffer
@@ -434,7 +530,6 @@ struct ContentView: View {
 
     private func saveSettings() {
         savedLocationId = selectedLocation?.id ?? ""
-        savedObservationHour = Calendar.current.component(.hour, from: observationTime)
         directionalAltitudesJSON = directionalAltitudes.jsonString
         moonTierConfigJSON = moonTierConfig.jsonString
 
@@ -479,10 +574,6 @@ struct ContentView: View {
             }
         }
 
-        if let hour = Calendar.current.date(from: DateComponents(hour: savedObservationHour)) {
-            observationTime = hour
-        }
-
         directionalAltitudes = DirectionalAltitudes.from(jsonString: directionalAltitudesJSON)
         moonTierConfig = moonTierConfigJSON.isEmpty
             ? .defaults
@@ -494,9 +585,26 @@ struct ContentView: View {
     private func exportCSV() {
         guard let result = calculationResult else { return }
 
-        var csv = "Date,Moon Alt,Moon Phase %,Target Alt,Angular Separation,Imaging Window (hrs)\n"
+        var csv = "Date,Target,Moon Phase %,Moon Alt,Target Alt,Angular Separation,Visibility (hrs),Moon-Free (hrs),Moon-Up (hrs),Avg Sep Moon-Up,Rating\n"
         for day in result.days {
-            csv += "\(day.dateLabel),\(day.moonAlt),\(day.moonPhase),\(day.targetAlt),\(day.angularSeparation),\(day.imagingWindow.durationHours)\n"
+            for tr in day.targetResults {
+                let rating = moonTierConfig.evaluateMoonAware(
+                    moonPhase: day.moonPhase,
+                    hoursMoonDown: tr.hoursMoonDown,
+                    hoursMoonUp: tr.hoursMoonUp,
+                    avgSeparationMoonUp: tr.avgSeparationMoonUp
+                )
+                let ratingLabel: String
+                switch rating {
+                case .good: ratingLabel = "Good"
+                case .allowable: ratingLabel = "Allowable"
+                case .mixed: ratingLabel = "Mixed"
+                case .noImaging: ratingLabel = "No Imaging"
+                }
+                let visHours = tr.visibility?.durationHours ?? 0
+                let avgSep = tr.avgSeparationMoonUp.map { String(format: "%.1f", $0) } ?? ""
+                csv += "\(day.dateLabel),\(tr.targetName),\(day.moonPhase),\(day.moonAlt),\(tr.targetAlt),\(tr.angularSeparation),\(visHours),\(tr.hoursMoonDown),\(tr.hoursMoonUp),\(avgSep),\(ratingLabel)\n"
+            }
         }
 
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("moondance_results.csv")

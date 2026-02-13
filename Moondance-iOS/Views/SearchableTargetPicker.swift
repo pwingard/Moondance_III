@@ -4,6 +4,8 @@ struct SearchableTargetPicker: View {
     @Binding var selectedTargets: [Target]
     @Binding var isPresented: Bool
     var maxTargets: Int = 6
+    var latitude: Double? = nil
+    var directionalAltitudes: DirectionalAltitudes = .defaultValues
 
     @State private var searchText = ""
     private let dataManager = DataManager.shared
@@ -36,6 +38,14 @@ struct SearchableTargetPicker: View {
                 }
             }
 
+            if hiddenCount > 0 {
+                Section {
+                    Text("\(hiddenCount) objects below the horizon at this latitude are hidden")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+
             ForEach(filteredGroups, id: \.0) { group in
                 Section(header: Text(group.0)) {
                     ForEach(group.1) { target in
@@ -54,6 +64,11 @@ struct SearchableTargetPicker: View {
                                         Text(target.size)
                                             .font(.caption)
                                             .foregroundColor(.secondary)
+                                    }
+                                    if let info = altitudeInfo(for: target), info.maxAlt < info.minAlt {
+                                        Text("Max \(info.maxAlt, specifier: "%.0f")° due \(info.direction) · below \(info.minAlt, specifier: "%.0f")° minimum")
+                                            .font(.caption2)
+                                            .foregroundColor(.orange)
                                     }
                                 }
                                 Spacer()
@@ -97,18 +112,42 @@ struct SearchableTargetPicker: View {
         }
     }
 
+    /// Returns true if the target never rises above 0° at the given latitude.
+    private func neverRises(_ target: Target) -> Bool {
+        guard let lat = latitude else { return false }
+        let maxAlt = 90.0 - abs(lat - target.dec)
+        return maxAlt < 0
+    }
+
+    /// Returns (maxAltitude, transitDirection, minAltInThatDirection) for a target, or nil if no latitude set.
+    private func altitudeInfo(for target: Target) -> (maxAlt: Double, direction: String, minAlt: Double)? {
+        guard let lat = latitude else { return nil }
+        let maxAlt = 90.0 - abs(lat - target.dec)
+        let transitsS = target.dec < lat
+        let direction = transitsS ? "S" : "N"
+        let minAlt = transitsS ? directionalAltitudes.values[4] : directionalAltitudes.values[0]
+        return (maxAlt, direction, minAlt)
+    }
+
+    private var hiddenCount: Int {
+        guard latitude != nil else { return 0 }
+        return dataManager.targets.filter { neverRises($0) }.count
+    }
+
     private var filteredGroups: [(String, [Target])] {
         let groups = dataManager.targetsByType.sorted { $0.key < $1.key }
-
-        if searchText.isEmpty {
-            return groups
-        }
 
         let lowercasedSearch = searchText.lowercased()
         return groups.compactMap { (type, targets) in
             let filtered = targets.filter { target in
-                target.name.lowercased().contains(lowercasedSearch) ||
-                target.id.lowercased().contains(lowercasedSearch)
+                // Hide targets that never rise above the horizon
+                if neverRises(target) { return false }
+                // Apply search filter
+                if !searchText.isEmpty {
+                    return target.name.lowercased().contains(lowercasedSearch) ||
+                           target.id.lowercased().contains(lowercasedSearch)
+                }
+                return true
             }
             return filtered.isEmpty ? nil : (type, filtered)
         }

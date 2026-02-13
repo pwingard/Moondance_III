@@ -118,8 +118,6 @@ enum MemoryProfiler {
 struct SettingsFormContent: View {
     @Binding var selectedLocation: Location?
     @Binding var selectedTargets: [Target]
-    @Binding var startDate: Date
-    @Binding var observationTime: Date
     @Binding var customLat: String
     @Binding var customLon: String
     @Binding var customElevation: String
@@ -304,24 +302,15 @@ struct SettingsFormContent: View {
 
     private var dateTimeSection: some View {
         Section {
-            DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
-            DatePicker("Local Time at Location", selection: $observationTime, displayedComponents: .hourAndMinute)
-
             VStack(alignment: .leading) {
-                HStack {
-                    Text("Date Range: \(Int(dateRangeDays)) days")
-                        .font(.subheadline)
-                    Spacer()
-                    Text("max \(maxTargets) targets")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
+                Text("Date Range: \(Int(dateRangeDays)) days")
+                    .font(.subheadline)
                 Slider(value: $dateRangeDays, in: 30...Double(DeviceLimits.maxDateRange), step: 1)
             }
         } header: {
-            Text("Date & Time")
+            Text("Date Range")
         } footer: {
-            Text("Time is interpreted as local time at the observation location")
+            Text("Charts start from today's date")
                 .font(.caption)
         }
     }
@@ -333,15 +322,12 @@ struct SettingsFormContent: View {
             HorizonProfileView(altitudes: $directionalAltitudes)
 
             VStack(alignment: .leading) {
-                Text("Dusk/Dawn Buffer: \(duskDawnBuffer, specifier: "%.1f") hrs")
+                Text("Dusk/Dawn Buffer: \(duskDawnBuffer, specifier: "%.2g") hrs each")
                     .font(.subheadline)
                 Slider(value: $duskDawnBuffer, in: 0...2, step: 0.25)
             }
         } header: {
             Text("Horizon Profile")
-        } footer: {
-            Text("Min altitude per compass direction filters low-horizon targets. Buffer excludes time near twilight.")
-                .font(.caption)
         }
     }
 
@@ -395,8 +381,8 @@ struct SettingsFormContent: View {
             .listRowBackground(Color(white: 0.49))
         } header: {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Moon Phase (Angular Separation)")
-                Text("Minimum angular separation required between target and moon during each moon phase")
+                Text("Moon Tiers")
+                Text("Minimum angular separation required by the user between target and moon during each moon phase period")
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .textCase(.none)
