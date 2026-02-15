@@ -460,6 +460,15 @@
       "size": "40' × 25'"
     },
     {
+      "id": "ngc2170",
+      "name": "NGC 2170 - Angel Nebula",
+      "type": "Nebula",
+      "ra": 93.5875,
+      "dec": -6.3997,
+      "magnitude": 6.8,
+      "size": "2'"
+    },
+    {
       "id": "ngc2237",
       "name": "NGC 2237 - Rosette Nebula",
       "type": "Nebula",
@@ -5561,6 +5570,33 @@
       "dec": -61.2833,
       "magnitude": 8.5,
       "size": "20' × 15'"
+    },
+    {
+      "id": "abell1656",
+      "name": "Abell 1656 - Coma Galaxy Cluster",
+      "type": "Galaxy",
+      "ra": 194.953,
+      "dec": 27.981,
+      "magnitude": 10.7,
+      "size": "120'"
+    },
+    {
+      "id": "ngc188",
+      "name": "NGC 188 - Polarissima Cluster",
+      "type": "Cluster",
+      "ra": 11.798,
+      "dec": 85.244,
+      "magnitude": 8.1,
+      "size": "17'"
+    },
+    {
+      "id": "ngc1344",
+      "name": "NGC 1344 - Shell Galaxy",
+      "type": "Galaxy",
+      "ra": 52.783,
+      "dec": -31.069,
+      "magnitude": 10.4,
+      "size": "5' × 3'"
     }
   ]
 }

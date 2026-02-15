@@ -28,6 +28,7 @@ struct SuggestionEngine {
     /// Suggest complementary targets that fill gaps in the user's nightly schedule.
     static func suggest(
         selectedTargets: [Target],
+        allTargets: [Target],
         latitude: Double,
         longitude: Double,
         elevation: Double,
@@ -69,7 +70,7 @@ struct SuggestionEngine {
 
         // Get candidates
         let selectedIds = Set(selectedTargets.map { $0.id })
-        let candidates = DataManager.shared.targets.filter { target in
+        let candidates = allTargets.filter { target in
             if selectedIds.contains(target.id) { return false }
             let maxAlt = 90.0 - abs(latitude - target.dec)
             return maxAlt >= 0

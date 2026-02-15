@@ -107,6 +107,9 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				EDCF60162F33661700BF7788 /* Moondance-iOS */,
+			);
 			name = "Moondance-iOS";
 			packageProductDependencies = (
 			);

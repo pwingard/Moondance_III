@@ -6,9 +6,16 @@ struct SearchableTargetPicker: View {
     var maxTargets: Int = 6
     var latitude: Double? = nil
     var directionalAltitudes: DirectionalAltitudes = .defaultValues
+    @Binding var favoriteTargetIds: Set<String>
 
     @State private var searchText = ""
+    @State private var wikiTarget: Target?
+    @State private var enabledTypes: Set<String> = []
     private let dataManager = DataManager.shared
+
+    private var allTypes: [String] {
+        dataManager.targetsByType.keys.sorted()
+    }
 
     private let targetColors: [Color] = [
         .cyan.opacity(0.8),
@@ -28,9 +35,27 @@ struct SearchableTargetPicker: View {
                             Circle()
                                 .fill(targetColors[index])
                                 .frame(width: 10, height: 10)
-                            Text(target.name)
-                                .foregroundColor(.primary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(target.name)
+                                    .foregroundColor(.primary)
+                                HStack(spacing: 4) {
+                                    if let mag = target.magnitude {
+                                        Text("Mag \(mag, specifier: "%.1f")")
+                                    }
+                                    Text(target.size)
+                                }
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            }
                             Spacer()
+                            Button {
+                                wikiTarget = target
+                            } label: {
+                                Image(systemName: "info.circle")
+                                    .foregroundColor(.secondary)
+                                    .font(.subheadline)
+                            }
+                            .buttonStyle(.plain)
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.accentColor)
                         }
@@ -44,6 +69,35 @@ struct SearchableTargetPicker: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
+            }
+
+            Section {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(allTypes, id: \.self) { type in
+                            Button {
+                                if enabledTypes.contains(type) {
+                                    enabledTypes.remove(type)
+                                } else {
+                                    enabledTypes.insert(type)
+                                }
+                            } label: {
+                                Text(type)
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(enabledTypes.contains(type) ? Color.accentColor : Color.secondary.opacity(0.15))
+                                    .foregroundColor(enabledTypes.contains(type) ? .white : .primary)
+                                    .cornerRadius(14)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+            } header: {
+                Text("Filter by Type")
             }
 
             ForEach(filteredGroups, id: \.0) { group in
@@ -72,6 +126,25 @@ struct SearchableTargetPicker: View {
                                     }
                                 }
                                 Spacer()
+
+                                Button {
+                                    toggleFavorite(target)
+                                } label: {
+                                    Image(systemName: favoriteTargetIds.contains(target.id) ? "star.fill" : "star")
+                                        .foregroundColor(favoriteTargetIds.contains(target.id) ? .yellow : .secondary.opacity(0.4))
+                                        .font(.subheadline)
+                                }
+                                .buttonStyle(.plain)
+
+                                Button {
+                                    wikiTarget = target
+                                } label: {
+                                    Image(systemName: "info.circle")
+                                        .foregroundColor(.secondary)
+                                        .font(.subheadline)
+                                }
+                                .buttonStyle(.plain)
+
                                 if let index = selectedTargets.firstIndex(where: { $0.id == target.id }) {
                                     HStack(spacing: 4) {
                                         Circle()
@@ -94,7 +167,15 @@ struct SearchableTargetPicker: View {
         }
         .navigationTitle("Select Targets")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            if enabledTypes.isEmpty {
+                enabledTypes = Set(allTypes)
+            }
+        }
         .searchable(text: $searchText, prompt: "Search objects...")
+        .sheet(item: $wikiTarget) { target in
+            WikipediaImageView(target: target)
+        }
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Done") {
@@ -109,6 +190,14 @@ struct SearchableTargetPicker: View {
             selectedTargets.remove(at: index)
         } else if selectedTargets.count < maxTargets {
             selectedTargets.append(target)
+        }
+    }
+
+    private func toggleFavorite(_ target: Target) {
+        if favoriteTargetIds.contains(target.id) {
+            favoriteTargetIds.remove(target.id)
+        } else {
+            favoriteTargetIds.insert(target.id)
         }
     }
 
@@ -139,6 +228,9 @@ struct SearchableTargetPicker: View {
 
         let lowercasedSearch = searchText.lowercased()
         return groups.compactMap { (type, targets) in
+            // Apply type filter
+            if !enabledTypes.contains(type) { return nil }
+
             let filtered = targets.filter { target in
                 // Hide targets that never rise above the horizon
                 if neverRises(target) { return false }

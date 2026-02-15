@@ -16,6 +16,7 @@ struct ContentView: View {
     @AppStorage("duskDawnBuffer") private var duskDawnBuffer: Double = 1.0
     @AppStorage("dateRangeDays") private var dateRangeDays: Double = 90
     @AppStorage("moonTierConfigJSON") private var moonTierConfigJSON: String = ""
+    @AppStorage("favoriteTargetIds") private var favoriteTargetIdsJSON: String = "[]"
 
     @State private var directionalAltitudes: DirectionalAltitudes = .defaultValues
     @State private var moonTierConfig: MoonTierConfig = .defaults
@@ -35,6 +36,9 @@ struct ContentView: View {
     @State private var suggestions: [TargetSuggestion] = []
     @State private var isLoadingSuggestions = false
     @State private var showHelp = false
+    @State private var showFavorites = false
+    @State private var favoriteTargetIds: Set<String> = []
+    @State private var wikiTarget: Target?
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -327,7 +331,8 @@ struct ContentView: View {
                         isPresented: $showTargetPicker,
                         maxTargets: maxTargets,
                         latitude: useCustomLocation ? Double(customLat) : selectedLocation?.lat,
-                        directionalAltitudes: directionalAltitudes
+                        directionalAltitudes: directionalAltitudes,
+                        favoriteTargetIds: $favoriteTargetIds
                     )
                 }
             }
@@ -347,8 +352,25 @@ struct ContentView: View {
                 )
             }
             .onAppear(perform: restoreSettings)
+            .onChange(of: favoriteTargetIds) {
+                let favIds = Array(favoriteTargetIds)
+                if let jsonData = try? JSONEncoder().encode(favIds),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    favoriteTargetIdsJSON = jsonString
+                }
+            }
             .sheet(isPresented: $showHelp) {
                 HelpView()
+            }
+            .sheet(isPresented: $showFavorites) {
+                FavoritesView(
+                    favoriteTargetIds: $favoriteTargetIds,
+                    selectedTargets: $selectedTargets,
+                    maxTargets: maxTargets
+                )
+            }
+            .sheet(item: $wikiTarget) { target in
+                WikipediaImageView(target: target)
             }
         }
     }
@@ -364,11 +386,24 @@ struct ContentView: View {
                         .frame(width: 10, height: 10)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(target.name)
-                        Text("RA: \(target.ra, specifier: "%.2f")\u{00B0}  Dec: \(target.dec, specifier: "%.2f")\u{00B0}")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+                        HStack(spacing: 4) {
+                            if let mag = target.magnitude {
+                                Text("Mag \(mag, specifier: "%.1f")")
+                            }
+                            Text(target.size)
+                        }
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                     }
                     Spacer()
+                    Button {
+                        wikiTarget = target
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(.secondary)
+                            .font(.subheadline)
+                    }
+                    .buttonStyle(.plain)
                     Button {
                         selectedTargets.remove(at: index)
                     } label: {
@@ -412,6 +447,23 @@ struct ContentView: View {
                 }
             }
             .disabled(!canSuggest || isLoadingSuggestions)
+
+            if !favoriteTargetIds.isEmpty {
+                Button {
+                    showFavorites = true
+                } label: {
+                    HStack {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                        Text("Favorites")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("\(favoriteTargetIds.count)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
         } header: {
             Text("Targets")
         }
@@ -441,6 +493,7 @@ struct ContentView: View {
         } else { return }
 
         let targets = selectedTargets
+        let allTargets = DataManager.shared.targets
         let days = Int(dateRangeDays)
         let alts = directionalAltitudes.values
         let config = moonTierConfig
@@ -449,6 +502,7 @@ struct ContentView: View {
         Task.detached(priority: .userInitiated) {
             let results = SuggestionEngine.suggest(
                 selectedTargets: targets,
+                allTargets: allTargets,
                 latitude: lat,
                 longitude: lon,
                 elevation: elev,
@@ -548,6 +602,12 @@ struct ContentView: View {
         } else {
             savedLocationJSON = ""
         }
+
+        let favIds = Array(favoriteTargetIds)
+        if let jsonData = try? JSONEncoder().encode(favIds),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            favoriteTargetIdsJSON = jsonString
+        }
     }
 
     private func restoreSettings() {
@@ -578,6 +638,11 @@ struct ContentView: View {
         moonTierConfig = moonTierConfigJSON.isEmpty
             ? .defaults
             : MoonTierConfig.from(jsonString: moonTierConfigJSON)
+
+        if let jsonData = favoriteTargetIdsJSON.data(using: .utf8),
+           let ids = try? JSONDecoder().decode([String].self, from: jsonData) {
+            favoriteTargetIds = Set(ids)
+        }
     }
 
     // MARK: - Export
