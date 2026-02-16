@@ -54,10 +54,19 @@ struct WikipediaService {
                            "star forming region", "edge-on galaxy", "open cluster",
                            "globular cluster", "planetary nebula"]
             if !generic.contains(commonName.lowercased()) {
+                // Try with "(nebula)" or "(astronomy)" disambiguation first for short/ambiguous names
+                if commonName.split(separator: " ").count <= 2 {
+                    terms.append("\(commonName) (nebula)")
+                    terms.append("\(commonName) (astronomy)")
+                }
                 terms.append(commonName)
             }
 
             let catalogPart = parts[0].trimmingCharacters(in: .whitespaces)
+            // Expand Barnard 68 → "Barnard 68" directly (dark nebula catalog)
+            if catalogPart.hasPrefix("Barnard") || catalogPart.hasPrefix("B ") {
+                terms.insert(catalogPart, at: 0)
+            }
             // Expand M42 → Messier 42, NGC 281 stays as is, IC 1396 stays
             if catalogPart.hasPrefix("M") && catalogPart.count <= 4,
                let num = Int(catalogPart.dropFirst()) {
@@ -83,8 +92,8 @@ struct WikipediaService {
                 return nil
             }
             let summary = try JSONDecoder().decode(WikipediaSummary.self, from: data)
-            // Only return if there's an image
-            if summary.thumbnail != nil || summary.originalimage != nil {
+            // Return if there's content (image or text extract)
+            if summary.thumbnail != nil || summary.originalimage != nil || (summary.extract != nil && !summary.extract!.isEmpty) {
                 return summary
             }
             return nil

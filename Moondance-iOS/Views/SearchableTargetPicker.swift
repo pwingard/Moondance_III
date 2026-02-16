@@ -5,12 +5,17 @@ struct SearchableTargetPicker: View {
     @Binding var isPresented: Bool
     var maxTargets: Int = 6
     var latitude: Double? = nil
+    var longitude: Double? = nil
+    var timezone: String = "America/New_York"
     var directionalAltitudes: DirectionalAltitudes = .defaultValues
     @Binding var favoriteTargetIds: Set<String>
 
     @State private var searchText = ""
     @State private var wikiTarget: Target?
     @State private var enabledTypes: Set<String> = []
+    @State private var sortByAvailability = false
+    @State private var visibilityCache: [String: (label: String, color: Color, daysAway: Int)] = [:]
+    @State private var cacheReady = false
     private let dataManager = DataManager.shared
 
     private var allTypes: [String] {
@@ -31,33 +36,37 @@ struct SearchableTargetPicker: View {
             if !selectedTargets.isEmpty {
                 Section("Selected (\(selectedTargets.count)/\(maxTargets))") {
                     ForEach(Array(selectedTargets.enumerated()), id: \.element.id) { index, target in
-                        HStack {
-                            Circle()
-                                .fill(targetColors[index])
-                                .frame(width: 10, height: 10)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(target.name)
-                                    .foregroundColor(.primary)
-                                HStack(spacing: 4) {
-                                    if let mag = target.magnitude {
-                                        Text("Mag \(mag, specifier: "%.1f")")
+                        Button {
+                            selectedTargets.removeAll { $0.id == target.id }
+                        } label: {
+                            HStack {
+                                Circle()
+                                    .fill(targetColors[index])
+                                    .frame(width: 10, height: 10)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(target.name)
+                                        .foregroundColor(.primary)
+                                    HStack(spacing: 4) {
+                                        if let mag = target.magnitude {
+                                            Text("Mag \(mag, specifier: "%.1f")")
+                                        }
+                                        Text(target.size)
                                     }
-                                    Text(target.size)
-                                }
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Button {
-                                wikiTarget = target
-                            } label: {
-                                Image(systemName: "info.circle")
+                                    .font(.caption)
                                     .foregroundColor(.secondary)
-                                    .font(.subheadline)
+                                }
+                                Spacer()
+                                Button {
+                                    wikiTarget = target
+                                } label: {
+                                    Image(systemName: "info.circle")
+                                        .foregroundColor(.secondary)
+                                        .font(.subheadline)
+                                }
+                                .buttonStyle(.plain)
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.secondary)
                             }
-                            .buttonStyle(.plain)
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.accentColor)
                         }
                     }
                 }
@@ -100,6 +109,21 @@ struct SearchableTargetPicker: View {
                 Text("Filter by Type")
             }
 
+            Section {
+                if !cacheReady {
+                    HStack {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text("Loading availability...")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                } else {
+                    Toggle("Sort by availability", isOn: $sortByAvailability)
+                        .font(.subheadline)
+                }
+            }
+
             ForEach(filteredGroups, id: \.0) { group in
                 Section(header: Text(group.0)) {
                     ForEach(group.1) { target in
@@ -110,15 +134,19 @@ struct SearchableTargetPicker: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(target.name)
                                         .foregroundColor(.primary)
-                                    if let mag = target.magnitude {
-                                        Text("Mag \(mag, specifier: "%.1f") · \(target.size)")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    } else {
-                                        Text(target.size)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
+                                    HStack(spacing: 4) {
+                                        if let mag = target.magnitude {
+                                            Text("Mag \(mag, specifier: "%.1f") · \(target.size)")
+                                        } else {
+                                            Text(target.size)
+                                        }
+                                        if let vis = visibilityInfo(for: target) {
+                                            Text("· \(vis.label)")
+                                                .foregroundColor(vis.daysAway == -1 ? .red : vis.color)
+                                        }
                                     }
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                                     if let info = altitudeInfo(for: target), info.maxAlt < info.minAlt {
                                         Text("Max \(info.maxAlt, specifier: "%.0f")° due \(info.direction) · below \(info.minAlt, specifier: "%.0f")° minimum")
                                             .font(.caption2)
@@ -164,12 +192,34 @@ struct SearchableTargetPicker: View {
                     }
                 }
             }
+
+            Section {
+                Button {
+                    requestObject()
+                } label: {
+                    HStack {
+                        Image(systemName: "envelope.fill")
+                            .foregroundColor(.accentColor)
+                        Text("Request an Object")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("Email us")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            } header: {
+                Text("Can't find what you're looking for?")
+            }
         }
         .navigationTitle("Select Targets")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             if enabledTypes.isEmpty {
                 enabledTypes = Set(allTypes)
+            }
+            if !cacheReady {
+                buildVisibilityCache()
             }
         }
         .searchable(text: $searchText, prompt: "Search objects...")
@@ -190,6 +240,14 @@ struct SearchableTargetPicker: View {
             selectedTargets.remove(at: index)
         } else if selectedTargets.count < maxTargets {
             selectedTargets.append(target)
+        }
+    }
+
+    private func requestObject() {
+        let subject = "Moondance Object Request".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let body = "Hi, I'd like to request the following object be added to Moondance:\n\nObject name: \nCatalog ID (if known): \nNotes: \n".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        if let url = URL(string: "mailto:seetheshow87@gmail.com?subject=\(subject)&body=\(body)") {
+            UIApplication.shared.open(url)
         }
     }
 
@@ -218,6 +276,68 @@ struct SearchableTargetPicker: View {
         return (maxAlt, direction, minAlt)
     }
 
+    /// Returns cached label + color + daysAway for target visibility timing.
+    private func visibilityInfo(for target: Target) -> (label: String, color: Color, daysAway: Int)? {
+        if let cached = visibilityCache[target.id] {
+            return cached
+        }
+        // Compute on demand if not cached yet
+        return computeVisibilityInfo(for: target)
+    }
+
+    private func computeVisibilityInfo(for target: Target) -> (label: String, color: Color, daysAway: Int)? {
+        guard let lat = latitude, let lon = longitude else { return nil }
+        let transitsS = target.dec < lat
+        let minAlt = transitsS ? directionalAltitudes.values[4] : directionalAltitudes.values[0]
+        let info = AstronomyEngine.firstVisibleInfo(
+            targetRA: target.ra, targetDec: target.dec,
+            latitude: lat, longitude: lon,
+            timezone: timezone,
+            minAlt: minAlt
+        )
+        let color: Color
+        switch info.daysAway {
+        case 0:
+            color = .green
+        case -1:
+            color = .red
+        case 1...90:
+            color = .yellow
+        default:
+            color = .orange
+        }
+        return (info.label, color, info.daysAway)
+    }
+
+    private func buildVisibilityCache() {
+        guard let lat = latitude, let lon = longitude else { return }
+        let targets = dataManager.targets.filter { !neverRises($0) }
+
+        // Pre-compute shared reference values ONCE (Calendar, JD, LST, DateFormatter)
+        let ref = AstronomyEngine.VisibilityRef(latitude: lat, longitude: lon, timezone: timezone)
+
+        var cache: [String: (label: String, color: Color, daysAway: Int)] = [:]
+        for target in targets {
+            let transitsS = target.dec < lat
+            let minAlt = transitsS ? directionalAltitudes.values[4] : directionalAltitudes.values[0]
+            let info = AstronomyEngine.firstVisibleInfo(
+                targetRA: target.ra, targetDec: target.dec,
+                ref: ref,
+                minAlt: minAlt
+            )
+            let color: Color
+            switch info.daysAway {
+            case 0: color = .green
+            case -1: color = .red
+            case 1...90: color = .yellow
+            default: color = .orange
+            }
+            cache[target.id] = (info.label, color, info.daysAway)
+        }
+        visibilityCache = cache
+        cacheReady = true
+    }
+
     private var hiddenCount: Int {
         guard latitude != nil else { return 0 }
         return dataManager.targets.filter { neverRises($0) }.count
@@ -227,14 +347,35 @@ struct SearchableTargetPicker: View {
         let groups = dataManager.targetsByType.sorted { $0.key < $1.key }
 
         let lowercasedSearch = searchText.lowercased()
+
+        if sortByAvailability && cacheReady {
+            // Flatten all targets, filter, sort by daysAway, return as single group
+            let allFiltered = groups.flatMap { (type, targets) -> [Target] in
+                if !enabledTypes.contains(type) { return [] }
+                return targets.filter { target in
+                    if neverRises(target) { return false }
+                    if !searchText.isEmpty {
+                        return target.name.lowercased().contains(lowercasedSearch) ||
+                               target.id.lowercased().contains(lowercasedSearch)
+                    }
+                    return true
+                }
+            }
+            let sorted = allFiltered.sorted { a, b in
+                let aDays = visibilityCache[a.id]?.daysAway ?? 999
+                let bDays = visibilityCache[b.id]?.daysAway ?? 999
+                let aSortKey = aDays == -1 ? 9999 : aDays
+                let bSortKey = bDays == -1 ? 9999 : bDays
+                return aSortKey < bSortKey
+            }
+            return sorted.isEmpty ? [] : [("By Availability", sorted)]
+        }
+
         return groups.compactMap { (type, targets) in
-            // Apply type filter
             if !enabledTypes.contains(type) { return nil }
 
             let filtered = targets.filter { target in
-                // Hide targets that never rise above the horizon
                 if neverRises(target) { return false }
-                // Apply search filter
                 if !searchText.isEmpty {
                     return target.name.lowercased().contains(lowercasedSearch) ||
                            target.id.lowercased().contains(lowercasedSearch)

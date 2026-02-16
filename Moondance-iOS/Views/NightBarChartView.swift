@@ -144,15 +144,15 @@ struct NightBarChartView: View {
                         .padding(8)
                 }
             }
-            .sheet(item: $selectedTarget) { target in
-                if let day = selectedDay {
-                    targetDetailSheet(day: day, target: target)
-                }
+        }
+        .sheet(item: $selectedTarget) { target in
+            if let day = selectedDay {
+                targetDetailSheet(day: day, target: target)
             }
-            .sheet(isPresented: $showMoonDetail) {
-                if let day = selectedDay {
-                    moonDetailSheet(day: day)
-                }
+        }
+        .sheet(isPresented: $showMoonDetail) {
+            if let day = selectedDay {
+                moonDetailSheet(day: day)
             }
         }
         .sheet(isPresented: $showHelp) {

@@ -498,12 +498,10 @@ struct SettingsFormContent: View {
         isProfileRunning = true
         memoryReport = nil
 
-        Task.detached(priority: .userInitiated) {
+        Task {
             let report = MemoryProfiler.run()
-            await MainActor.run {
-                memoryReport = report
-                isProfileRunning = false
-            }
+            memoryReport = report
+            isProfileRunning = false
         }
     }
     #endif

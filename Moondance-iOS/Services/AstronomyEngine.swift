@@ -452,6 +452,143 @@ nonisolated struct AstronomyEngine: Sendable {
         return gmst
     }
 
+    // MARK: - Quick Visibility Check
+
+    /// Checks if a target is above minAlt at midnight for a given date.
+    /// Returns true if the target reaches above the given altitude during nighttime hours.
+    /// Lightweight — checks altitude at 9 PM, midnight, and 3 AM local time.
+    static func isTargetUpAtNight(
+        targetRA: Double, targetDec: Double,
+        latitude: Double, longitude: Double,
+        date: Date, timezone: String,
+        minAlt: Double = 15.0
+    ) -> Bool {
+        let tz = TimeZone(identifier: timezone) ?? .current
+        let calendar = Calendar.current
+        var comps = calendar.dateComponents(in: tz, from: date)
+
+        for hour in [21, 0, 3] {
+            comps.hour = hour
+            comps.minute = 0
+            comps.second = 0
+            if hour < 12 {
+                // Next day for post-midnight hours
+                if let nextDay = calendar.date(byAdding: .day, value: 1, to: date) {
+                    comps = calendar.dateComponents(in: tz, from: nextDay)
+                    comps.hour = hour
+                    comps.minute = 0
+                    comps.second = 0
+                }
+            }
+            guard let checkDate = calendar.date(from: comps) else { continue }
+            let jd = julianDate(from: checkDate)
+            let altAz = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: jd, lat: latitude, lon: longitude)
+            if altAz.alt >= minAlt { return true }
+        }
+        return false
+    }
+
+    /// Pre-computed reference values for batch visibility calculations.
+    /// Create once, pass to `firstVisibleInfo` for each target.
+    struct VisibilityRef {
+        let refMidnight: Date    // next local midnight
+        let refJD: Double        // Julian Date at refMidnight
+        let refLST: Double       // Local Sidereal Time at refMidnight (degrees)
+        let latRad: Double       // latitude in radians
+        let latitude: Double
+        let longitude: Double
+        let fmt: DateFormatter
+
+        init(latitude: Double, longitude: Double, timezone: String) {
+            let tz = TimeZone(identifier: timezone) ?? .current
+            var cal = Calendar.current
+            cal.timeZone = tz
+            let today = Date()
+            let todayMidnight = cal.startOfDay(for: today)
+            self.refMidnight = todayMidnight.addingTimeInterval(86400)
+            self.refJD = AstronomyEngine.julianDate(from: refMidnight)
+            self.refLST = (AstronomyEngine.greenwichMeanSiderealTime(jd: refJD) + longitude).mod(360)
+            self.latRad = latitude.degreesToRadians
+            self.latitude = latitude
+            self.longitude = longitude
+            self.fmt = DateFormatter()
+            self.fmt.dateFormat = "MMM d"
+        }
+    }
+
+    /// Returns (label, daysUntilVisible) for a target using pure geometric calculation.
+    /// Pass a shared `VisibilityRef` for batch calls (avoids repeated Calendar/TZ setup).
+    static func firstVisibleInfo(
+        targetRA: Double, targetDec: Double,
+        ref: VisibilityRef,
+        minAlt: Double = 15.0
+    ) -> (label: String, daysAway: Int) {
+        let decRad = targetDec.degreesToRadians
+        let minAltRad = minAlt.degreesToRadians
+
+        // Max altitude this target ever reaches at this latitude
+        let maxAlt = 90.0 - abs(ref.latitude - targetDec)
+
+        // If target never reaches minAlt, find its peak date
+        if maxAlt < minAlt {
+            let raOffset = (targetRA - ref.refLST).mod(360)
+            let daysToTransit = Int(round(raOffset / 0.9856))
+            let transitDate = ref.refMidnight.addingTimeInterval(Double(daysToTransit) * 86400)
+            let transitJD = ref.refJD + Double(daysToTransit)
+            let altAz = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: transitJD, lat: ref.latitude, lon: ref.longitude)
+            return ("Peak \(String(format: "%.0f", altAz.alt))° on \(ref.fmt.string(from: transitDate))", -1)
+        }
+
+        // Hour angle limit: how far from meridian the target can be while still above minAlt
+        let cosHALimit = (sin(minAltRad) - sin(decRad) * sin(ref.latRad)) / (cos(decRad) * cos(ref.latRad))
+        let haLimitDeg: Double
+        if cosHALimit <= -1 {
+            haLimitDeg = 180.0 // circumpolar above minAlt
+        } else if cosHALimit >= 1 {
+            haLimitDeg = 0.0
+        } else {
+            haLimitDeg = acos(cosHALimit).radiansToDegrees
+        }
+
+        // Days the target is above minAlt centered on transit date
+        // Add 45° margin for nighttime hours (9PM/3AM, not just midnight)
+        let visibleHalfWindowDays = (haLimitDeg + 45.0) / 0.9856
+
+        // Midnight transit: when HA=0 at midnight → LST = RA
+        let raOffset = (targetRA - ref.refLST).mod(360)
+        let daysToTransit = Int(round(raOffset / 0.9856))
+
+        // First visible ≈ transit date minus half the visible window
+        let firstVisibleDay = max(0, daysToTransit - Int(visibleHalfWindowDays))
+
+        // Check if it's visible now
+        if firstVisibleDay <= 0 {
+            // Quick altitude checks: midnight, 9 PM, 3 AM
+            let altMid = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: ref.refJD, lat: ref.latitude, lon: ref.longitude).alt
+            if altMid >= minAlt { return ("Up now", 0) }
+            let alt9pm = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: ref.refJD - 3.0/24.0, lat: ref.latitude, lon: ref.longitude).alt
+            if alt9pm >= minAlt { return ("Up now", 0) }
+            let alt3am = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: ref.refJD + 3.0/24.0, lat: ref.latitude, lon: ref.longitude).alt
+            if alt3am >= minAlt { return ("Up now", 0) }
+        }
+
+        // Return the estimated first-visible date
+        let resultDay = max(1, firstVisibleDay)
+        let resultDate = ref.refMidnight.addingTimeInterval(Double(resultDay) * 86400)
+        return ("Up \(ref.fmt.string(from: resultDate))", resultDay)
+    }
+
+    /// Convenience wrapper for single-target calls (used by computeVisibilityInfo fallback).
+    static func firstVisibleInfo(
+        targetRA: Double, targetDec: Double,
+        latitude: Double, longitude: Double,
+        timezone: String,
+        minAlt: Double = 15.0
+    ) -> (label: String, daysAway: Int) {
+        let ref = VisibilityRef(latitude: latitude, longitude: longitude, timezone: timezone)
+        return firstVisibleInfo(targetRA: targetRA, targetDec: targetDec, ref: ref, minAlt: minAlt)
+    }
+
     // MARK: - Angular Separation
 
     /// Angular separation between two points in equatorial coordinates (degrees).

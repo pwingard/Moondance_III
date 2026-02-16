@@ -141,3 +141,74 @@ Moondance-iOS is an astrophotography planning app. Users pick a location + deep 
 
 ### Committed & Pushed
 - `b880103` — "Add favorites, Wikipedia integration, enhanced target picker, NGC 2170"
+
+## 2026-02-16 — Session 6 (App Store Registration + Bug Fixes)
+
+### App Store Connect Setup
+- Apple Developer account: ACTIVE (Team ID: 87HPY7249P)
+- Registered Bundle ID: `com.seetheshow.moondance3` (already in pbxproj)
+- Created app in App Store Connect: "Moondance Astro Planner"
+- iOS App Version 1.0 — "Prepare for Submission" status
+- Still need: screenshots, description, keywords, subtitle
+
+### UI Changes
+- Title: "Moondance III" → "Moondance"
+- Subtitle: "Long Range Planner & Lunar Sidestepper" → "Astrophotography Planner and Lunar Sidestepper"
+- Bottom credit: "See the Show Astro v0.9" → "Moondance Studio 87"
+- Added NGC 2170 (Angel Nebula) to targets.json
+- Confirmed FavoritesView, WikipediaService, WikipediaImageView build OK (PBXFileSystemSynchronizedRootGroup auto-includes)
+
+### Bugs Fixed
+1. ✅ Unselect targets — tap target in Selected section of picker to remove (changed checkmark to X icon)
+2. ✅ Wikipedia disambiguation — short/ambiguous names now try "(nebula)" and "(astronomy)" suffixes first; Barnard catalog prioritized
+3. ✅ Help '?' button — added to landscape chart top-right (next to '!'), sheet attached to ContentView Group level so it works in both orientations
+4. ✅ "Up now" / "Up [date]" visibility labels in search picker — green (up now), yellow (within 3 months), orange (over 3 months), red (never clears min alt). Uses lightweight AstronomyEngine check (9 PM, midnight, 3 AM) scanning up to 365 days
+5. ✅ "Request an Object" — email button at bottom of search picker, pre-filled mailto to seetheshow87@gmail.com
+6. ✅ Portrait chart detail sheets blank — moved NightBarChartView OUT of Form into plain ScrollView/VStack so sheets can present properly
+7. ✅ Swift concurrency warnings (12) — changed Task.detached to Task for SuggestionEngine and MemoryProfiler calls
+
+### Bugs Fixed (Round 2)
+1. ✅ Dark nebulas wiki — relaxed WikipediaService to accept text-only articles (no image required)
+2. ✅ Sort search list by availability — "Sort by availability" toggle flattens all types into single section sorted by daysAway
+3. ✅ NGC 5139 red but others not — switched from hardcoded 15° minAlt to directional min altitude (N/S based on transit direction) using DirectionalAltitudes
+4. ✅ "Never clears" text now red — applied `.foregroundColor(.red)` for daysAway == -1
+5. ✅ Peak altitude for never-clears — added peakNighttimeAltitude() to show "Peak X° on [date]"
+
+### Performance Fix: Visibility Cache (3 iterations to get right)
+- **Problem**: `firstVisibleInfo()` scanned 365 days × 3 time checks per target × 100+ targets. Cache never completed — UI showed no visibility data, sort toggle didn't work.
+- **Root cause 1**: Day-by-day scanning was O(n×365) — too slow even on MainActor Task.
+- **Attempt 1**: Narrowed search window using LST transit date, but still used `isTargetUpAtNight()` in loops — each call created Calendar/TimeZone/DateComponents. Still too slow.
+- **Attempt 2**: Used `calendar.dateComponents(in:from:)` + `calendar.date(from:)` — crashed. DateComponents returned by `dateComponents(in:from:)` carry embedded calendar/timezone that conflict when passed back. Fixed with `cal.startOfDay(for:)` but still slow (Calendar per target).
+- **Final fix (working)**: Pure geometric O(1) per target:
+  - Created `VisibilityRef` struct — pre-computes Calendar, TimeZone, midnight JD, LST, DateFormatter ONCE for all targets
+  - `firstVisibleInfo(ref:)` takes shared ref, does only trig math per target (no Calendar calls in loop)
+  - Hour angle limit formula: `cos(HA) = (sin(minAlt) - sin(dec)*sin(lat)) / (cos(dec)*cos(lat))` → gives visible window in days
+  - "Up now" check: 3 `equatorialToAltAz` calls (midnight, 9PM, 3AM) — pure trig
+  - "Never clears": instant `maxAlt = 90° - |lat - dec|` check, peak date via LST transit
+  - Removed `Task { }` wrapper — computation is synchronous, completes in milliseconds
+  - Removed `peakNighttimeAltitude()` / `peakNighttimeInfo()` — inlined into `firstVisibleInfo`
+- **Result**: Cache builds instantly. Visibility labels and sort toggle working.
+
+### Files Modified This Session (complete list)
+- `ContentView.swift` — title "Moondance", subtitle, credit "Moondance Studio 87", '?' help button on landscape chart overlay, .sheet at Group level, portrait layout restructure (chart outside Form), Task.detached→Task
+- `Views/SearchableTargetPicker.swift` — unselect by tapping Selected row, visibility labels with color coding, sort by availability toggle, visibility cache with async Task build, directional minAlt, "Request an Object" mailto button
+- `Views/NightBarChartView.swift` — moved .sheet modifiers to outer VStack (fixes portrait detail sheets)
+- `Services/AstronomyEngine.swift` — added isTargetUpAtNight(), firstVisibleInfo() (rewritten with fast geometric calc), peakNighttimeInfo() (fast LST-based)
+- `Services/WikipediaService.swift` — disambiguation suffixes "(nebula)"/"(astronomy)", Barnard catalog priority, relaxed image filter for text-only articles
+- `Services/SuggestionEngine.swift` — Sendable conformance, Task.detached→Task
+- `Views/SettingsFormView.swift` — Task.detached→Task for MemoryProfiler
+- `Data/targets.json` — added NGC 2170 (Angel Nebula)
+- `WORKLOG.md` — this file
+
+### App Store Status
+- Apple Developer account: ACTIVE (Team ID: 87HPY7249P)
+- Bundle ID registered: `com.seetheshow.moondance3`
+- App created in App Store Connect: "Moondance Astro Planner"
+- Privacy policy LIVE at pfwingard.com/privacy
+- Contact email: seetheshow87@gmail.com
+- ⏳ Still needed: App Store metadata (description, keywords, screenshots), final build upload
+- ⏳ MARKETING_VERSION needs updating from 0.8 to 1.0 before submission
+
+### Committed
+- `b880103` — "Add favorites, Wikipedia integration, enhanced target picker, NGC 2170"
+- ⏳ Current work NOT YET COMMITTED — all round 2 bug fixes + performance fix above

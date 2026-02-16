@@ -108,6 +108,9 @@ struct ContentView: View {
                 portraitView
             }
         }
+        .sheet(isPresented: $showHelp) {
+            HelpView()
+        }
         .sheet(isPresented: $showFeedback) {
             FeedbackView(
                 selectedTarget: selectedTargets.first,
@@ -156,15 +159,27 @@ struct ContentView: View {
                 .padding(.leading, 8)
             }
             .overlay(alignment: .topTrailing) {
-                Button {
-                    captureScreenshotAndShowFeedbackFromLandscape()
-                } label: {
-                    Image(systemName: "exclamationmark.bubble.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(.white)
-                        .padding(6)
-                        .background(Color.gray.opacity(0.7))
-                        .clipShape(Circle())
+                HStack(spacing: 8) {
+                    Button {
+                        showHelp = true
+                    } label: {
+                        Image(systemName: "questionmark.circle.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white)
+                            .padding(6)
+                            .background(Color.gray.opacity(0.7))
+                            .clipShape(Circle())
+                    }
+                    Button {
+                        captureScreenshotAndShowFeedbackFromLandscape()
+                    } label: {
+                        Image(systemName: "exclamationmark.bubble.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white)
+                            .padding(6)
+                            .background(Color.gray.opacity(0.7))
+                            .clipShape(Circle())
+                    }
                 }
                 .padding(.top, 8)
                 .padding(.trailing, 8)
@@ -179,54 +194,67 @@ struct ContentView: View {
     private var portraitView: some View {
         NavigationStack {
             ScrollViewReader { scrollProxy in
-                Form {
-                    targetSection
+                ScrollView {
+                    VStack(spacing: 0) {
+                        Form {
+                            targetSection
 
-                    if isCalculating {
-                        Section {
-                            HStack {
-                                Spacer()
-                                ProgressView("Calculating...")
-                                Spacer()
+                            if isCalculating {
+                                Section {
+                                    HStack {
+                                        Spacer()
+                                        ProgressView("Calculating...")
+                                        Spacer()
+                                    }
+                                }
                             }
                         }
-                    }
+                        .frame(height: isCalculating ? 340 : 280)
 
-                    if let result = calculationResult {
-                        Section {
-                            NightBarChartView(
-                                result: result,
-                                title: chartTitle,
-                                moonTierConfig: moonTierConfig
-                            )
-                        } header: {
-                            Text("Nightly Visibility \u{2014} rotate for fullscreen")
-                        }
-                        .id("chartSection")
+                        if let result = calculationResult {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Nightly Visibility — rotate for fullscreen")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .textCase(.uppercase)
+                                    .padding(.horizontal)
 
-                        Section {
-                            SummaryView(
-                                result: result,
-                                moonTierConfig: moonTierConfig
-                            )
-                        } header: {
-                            Text("Recommendations")
-                        }
-
-                        Section {
-                            Button {
-                                exportCSV()
-                            } label: {
-                                Label("Export CSV", systemImage: "tablecells")
+                                NightBarChartView(
+                                    result: result,
+                                    title: chartTitle,
+                                    moonTierConfig: moonTierConfig
+                                )
+                                .padding(.horizontal)
                             }
+                            .id("chartSection")
 
-                            Button {
-                                exportChart()
-                            } label: {
-                                Label("Share Chart", systemImage: "square.and.arrow.up")
+                            Form {
+                                Section {
+                                    SummaryView(
+                                        result: result,
+                                        moonTierConfig: moonTierConfig
+                                    )
+                                } header: {
+                                    Text("Recommendations")
+                                }
+
+                                Section {
+                                    Button {
+                                        exportCSV()
+                                    } label: {
+                                        Label("Export CSV", systemImage: "tablecells")
+                                    }
+
+                                    Button {
+                                        exportChart()
+                                    } label: {
+                                        Label("Share Chart", systemImage: "square.and.arrow.up")
+                                    }
+                                } header: {
+                                    Text("Export")
+                                }
                             }
-                        } header: {
-                            Text("Export")
+                            .frame(height: 300)
                         }
                     }
                 }
@@ -262,7 +290,7 @@ struct ContentView: View {
                     .padding(.horizontal)
 
                     HStack(spacing: 4) {
-                        Text("See the Show Astro v0.9")
+                        Text("Moondance Studio 87")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         Button {
@@ -305,10 +333,10 @@ struct ContentView: View {
                 }
                 ToolbarItem(placement: .principal) {
                     VStack(spacing: 0) {
-                        Text("Moondance III")
+                        Text("Moondance")
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                        Text("Long Range Planner & Lunar Sidestepper")
+                        Text("Astrophotography Planner and Lunar Sidestepper")
                             .font(.system(size: 9))
                             .foregroundColor(.secondary)
                     }
@@ -331,6 +359,8 @@ struct ContentView: View {
                         isPresented: $showTargetPicker,
                         maxTargets: maxTargets,
                         latitude: useCustomLocation ? Double(customLat) : selectedLocation?.lat,
+                        longitude: useCustomLocation ? Double(customLon) : selectedLocation?.lon,
+                        timezone: useCustomLocation ? customTimezone : (selectedLocation?.timezone ?? "America/New_York"),
                         directionalAltitudes: directionalAltitudes,
                         favoriteTargetIds: $favoriteTargetIds
                     )
@@ -499,7 +529,7 @@ struct ContentView: View {
         let config = moonTierConfig
         let buffer = duskDawnBuffer
 
-        Task.detached(priority: .userInitiated) {
+        Task {
             let results = SuggestionEngine.suggest(
                 selectedTargets: targets,
                 allTargets: allTargets,
@@ -512,11 +542,9 @@ struct ContentView: View {
                 moonTierConfig: config,
                 duskDawnBufferHours: buffer
             )
-            await MainActor.run {
-                suggestions = results
-                isLoadingSuggestions = false
-                showSuggestions = true
-            }
+            suggestions = results
+            isLoadingSuggestions = false
+            showSuggestions = true
         }
     }
 

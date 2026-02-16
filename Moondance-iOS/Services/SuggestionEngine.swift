@@ -23,7 +23,7 @@ private struct NightContext {
     let totalGapHours: Double
 }
 
-struct SuggestionEngine {
+struct SuggestionEngine: Sendable {
 
     /// Suggest complementary targets that fill gaps in the user's nightly schedule.
     static func suggest(
