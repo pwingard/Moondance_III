@@ -110,9 +110,34 @@ Moondance-iOS is an astrophotography planning app. Users pick a location + deep 
 - `Moondance-iOS/PrivacyInfo.xcprivacy` — NEW, privacy manifest
 - `Views/FeedbackView.swift` — updated recipient email
 
-### Still TODO before App Store submission
-- Verify email forwarding works (retry moondance.support@pfwingard.com)
-- Create and host privacy policy at moondance.pfwingard.com/privacy
-- Prepare App Store metadata (description, keywords, screenshots)
-- Delete duplicate PrivacyInfo.xcprivacy at project root if still there
-- Test on physical device
+### App Store Checklist (updated 2026-02-16)
+- ✅ Privacy policy — LIVE at pfwingard.com/privacy (contact: seetheshow87@gmail.com)
+- ✅ Email forwarding — resolved (went through multiple iterations)
+- ✅ PrivacyInfo.xcprivacy — single copy in Moondance-iOS/ (NOTE: not referenced in pbxproj, may need adding to target)
+- ✅ Physical device testing — done
+- ⏳ App Store metadata (description, keywords, screenshots) — still needed
+- ⏳ PrivacyInfo.xcprivacy may not be in Xcode target (0 references in project.pbxproj)
+
+## 2026-02-14/15 — Sessions 4-5 (Favorites, Wikipedia, Target Picker)
+
+### What was done
+- Wikipedia integration: WikipediaService.swift fetches article summaries + images via REST API
+- WikipediaImageView.swift: modal sheet showing target info + image from Wikipedia
+- FavoritesView.swift: save/load favorite targets, grouped by type, swipe-to-delete
+- SearchableTargetPicker.swift: type filter pills, text search, altitude checking, star toggle for favorites, info.circle button, color-coded selection (max 6)
+- ContentView.swift: magnitude + info.circle added to main target list, favorites button, Wikipedia sheet integration
+- targets.json: added new targets including NGC 2170 (Angel Nebula)
+- SuggestionEngine.swift: minor update
+
+### Files Modified
+- `ContentView.swift` — target section with mag/info, favorites/wiki sheets
+- `Views/SearchableTargetPicker.swift` — full rewrite with filters, favorites, altitude checks
+- `Views/FavoritesView.swift` — NEW
+- `Views/WikipediaImageView.swift` — NEW
+- `Services/WikipediaService.swift` — NEW
+- `Services/SuggestionEngine.swift` — minor fix
+- `Data/targets.json` — added NGC 2170 + others
+- `project.pbxproj` — new file references
+
+### Committed & Pushed
+- `b880103` — "Add favorites, Wikipedia integration, enhanced target picker, NGC 2170"
