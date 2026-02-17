@@ -21,7 +21,7 @@
     {
       "id": "m13",
       "name": "M13 - Hercules Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 250.4237,
       "dec": 36.4613,
       "magnitude": 5.8,
@@ -102,7 +102,7 @@
     {
       "id": "m44",
       "name": "M44 - Beehive Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 130.0,
       "dec": 19.9833,
       "magnitude": 3.7,
@@ -111,7 +111,7 @@
     {
       "id": "m45",
       "name": "M45 - Pleiades",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 56.8667,
       "dec": 24.1167,
       "magnitude": 1.6,
@@ -417,7 +417,7 @@
     {
       "id": "ngc869_884",
       "name": "NGC 869/884 - Double Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 35.0,
       "dec": 57.1333,
       "magnitude": 4.3,
@@ -579,7 +579,7 @@
     {
       "id": "ngc5139",
       "name": "NGC 5139 - Omega Centauri",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 201.6958,
       "dec": -47.4792,
       "magnitude": 3.9,
@@ -741,7 +741,7 @@
     {
       "id": "ngc7789",
       "name": "NGC 7789 - White Rose Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 359.575,
       "dec": 56.7167,
       "magnitude": 6.7,
@@ -912,7 +912,7 @@
     {
       "id": "caldwell14",
       "name": "C14 - Double Cluster (NGC 869/884)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 35.0,
       "dec": 57.1333,
       "magnitude": 4.3,
@@ -930,7 +930,7 @@
     {
       "id": "collinder399",
       "name": "Collinder 399 - Coat Hanger Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 294.4167,
       "dec": 20.1833,
       "magnitude": 3.6,
@@ -939,7 +939,7 @@
     {
       "id": "mel15",
       "name": "Melotte 15 - Heart Nebula Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 38.4583,
       "dec": 61.5833,
       "magnitude": 7.3,
@@ -948,7 +948,7 @@
     {
       "id": "mel20",
       "name": "Melotte 20 - Alpha Persei Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 51.5,
       "dec": 49.8667,
       "magnitude": 1.2,
@@ -984,7 +984,7 @@
     {
       "id": "ngc2244",
       "name": "NGC 2244 - Rosette Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 98.2083,
       "dec": 4.9167,
       "magnitude": 4.8,
@@ -1029,7 +1029,7 @@
     {
       "id": "m2",
       "name": "M2 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 323.3625,
       "dec": -0.8233,
       "magnitude": 6.5,
@@ -1038,7 +1038,7 @@
     {
       "id": "m3",
       "name": "M3 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 205.5483,
       "dec": 28.3772,
       "magnitude": 6.2,
@@ -1047,7 +1047,7 @@
     {
       "id": "m4",
       "name": "M4 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 245.8967,
       "dec": -26.5256,
       "magnitude": 5.6,
@@ -1056,7 +1056,7 @@
     {
       "id": "m5",
       "name": "M5 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 229.6383,
       "dec": 2.0811,
       "magnitude": 5.6,
@@ -1065,7 +1065,7 @@
     {
       "id": "m6",
       "name": "M6 - Butterfly Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 265.0833,
       "dec": -32.2167,
       "magnitude": 4.2,
@@ -1074,7 +1074,7 @@
     {
       "id": "m7",
       "name": "M7 - Ptolemy Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 268.4667,
       "dec": -34.7933,
       "magnitude": 3.3,
@@ -1083,7 +1083,7 @@
     {
       "id": "m9",
       "name": "M9 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 259.7983,
       "dec": -18.5167,
       "magnitude": 7.7,
@@ -1092,7 +1092,7 @@
     {
       "id": "m10",
       "name": "M10 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 254.2875,
       "dec": -4.1,
       "magnitude": 6.6,
@@ -1101,7 +1101,7 @@
     {
       "id": "m11",
       "name": "M11 - Wild Duck Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 282.7667,
       "dec": -6.2667,
       "magnitude": 6.3,
@@ -1110,7 +1110,7 @@
     {
       "id": "m12",
       "name": "M12 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 251.8092,
       "dec": -1.9483,
       "magnitude": 6.7,
@@ -1119,7 +1119,7 @@
     {
       "id": "m14",
       "name": "M14 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 264.4017,
       "dec": -3.2456,
       "magnitude": 7.6,
@@ -1128,7 +1128,7 @@
     {
       "id": "m15",
       "name": "M15 - Great Pegasus Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 322.493,
       "dec": 12.167,
       "magnitude": 6.2,
@@ -1137,7 +1137,7 @@
     {
       "id": "m18",
       "name": "M18 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 274.7083,
       "dec": -17.1167,
       "magnitude": 7.5,
@@ -1146,7 +1146,7 @@
     {
       "id": "m19",
       "name": "M19 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 255.6567,
       "dec": -26.2678,
       "magnitude": 6.8,
@@ -1155,7 +1155,7 @@
     {
       "id": "m21",
       "name": "M21 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 270.5333,
       "dec": -22.4833,
       "magnitude": 6.5,
@@ -1164,7 +1164,7 @@
     {
       "id": "m22",
       "name": "M22 - Sagittarius Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 279.0992,
       "dec": -23.9047,
       "magnitude": 5.1,
@@ -1173,7 +1173,7 @@
     {
       "id": "m23",
       "name": "M23 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 269.2667,
       "dec": -18.9833,
       "magnitude": 6.9,
@@ -1182,7 +1182,7 @@
     {
       "id": "m24",
       "name": "M24 - Sagittarius Star Cloud",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 274.4417,
       "dec": -18.4167,
       "magnitude": 4.6,
@@ -1191,7 +1191,7 @@
     {
       "id": "m25",
       "name": "M25 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 277.9667,
       "dec": -19.1167,
       "magnitude": 4.6,
@@ -1200,7 +1200,7 @@
     {
       "id": "m26",
       "name": "M26 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 281.3208,
       "dec": -9.3833,
       "magnitude": 8.0,
@@ -1209,7 +1209,7 @@
     {
       "id": "m28",
       "name": "M28 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 276.1367,
       "dec": -24.8697,
       "magnitude": 6.8,
@@ -1218,7 +1218,7 @@
     {
       "id": "m29",
       "name": "M29 - Cooling Tower Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 305.9792,
       "dec": 38.5167,
       "magnitude": 7.1,
@@ -1227,7 +1227,7 @@
     {
       "id": "m30",
       "name": "M30 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 325.0917,
       "dec": -23.1797,
       "magnitude": 7.2,
@@ -1236,7 +1236,7 @@
     {
       "id": "m34",
       "name": "M34 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 40.5167,
       "dec": 42.7667,
       "magnitude": 5.5,
@@ -1245,7 +1245,7 @@
     {
       "id": "m35",
       "name": "M35 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 92.25,
       "dec": 24.3333,
       "magnitude": 5.3,
@@ -1254,7 +1254,7 @@
     {
       "id": "m36",
       "name": "M36 - Pinwheel Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 84.0833,
       "dec": 34.1333,
       "magnitude": 6.3,
@@ -1263,7 +1263,7 @@
     {
       "id": "m37",
       "name": "M37 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 88.0708,
       "dec": 32.55,
       "magnitude": 6.2,
@@ -1272,7 +1272,7 @@
     {
       "id": "m38",
       "name": "M38 - Starfish Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 82.1667,
       "dec": 35.8333,
       "magnitude": 7.4,
@@ -1281,7 +1281,7 @@
     {
       "id": "m39",
       "name": "M39 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 322.9417,
       "dec": 48.4333,
       "magnitude": 5.5,
@@ -1290,7 +1290,7 @@
     {
       "id": "m41",
       "name": "M41 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 101.5042,
       "dec": -20.7333,
       "magnitude": 4.5,
@@ -1299,7 +1299,7 @@
     {
       "id": "m46",
       "name": "M46 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 115.4417,
       "dec": -14.8167,
       "magnitude": 6.1,
@@ -1308,7 +1308,7 @@
     {
       "id": "m47",
       "name": "M47 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 114.15,
       "dec": -14.5,
       "magnitude": 4.2,
@@ -1317,7 +1317,7 @@
     {
       "id": "m48",
       "name": "M48 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 123.4208,
       "dec": -5.75,
       "magnitude": 5.5,
@@ -1335,7 +1335,7 @@
     {
       "id": "m50",
       "name": "M50 - Heart-Shaped Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 105.6875,
       "dec": -8.35,
       "magnitude": 5.9,
@@ -1344,7 +1344,7 @@
     {
       "id": "m52",
       "name": "M52 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 351.2,
       "dec": 61.5833,
       "magnitude": 7.3,
@@ -1353,7 +1353,7 @@
     {
       "id": "m53",
       "name": "M53 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 198.23,
       "dec": 18.1683,
       "magnitude": 7.6,
@@ -1362,7 +1362,7 @@
     {
       "id": "m54",
       "name": "M54 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 283.7633,
       "dec": -30.4783,
       "magnitude": 7.6,
@@ -1371,7 +1371,7 @@
     {
       "id": "m55",
       "name": "M55 - Summer Rose Star",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 294.9983,
       "dec": -30.9647,
       "magnitude": 6.3,
@@ -1380,7 +1380,7 @@
     {
       "id": "m56",
       "name": "M56 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 289.1483,
       "dec": 30.1836,
       "magnitude": 8.3,
@@ -1425,7 +1425,7 @@
     {
       "id": "m62",
       "name": "M62 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 255.3033,
       "dec": -30.1136,
       "magnitude": 6.5,
@@ -1434,7 +1434,7 @@
     {
       "id": "m67",
       "name": "M67 - King Cobra Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 132.825,
       "dec": 11.8167,
       "magnitude": 6.1,
@@ -1443,7 +1443,7 @@
     {
       "id": "m68",
       "name": "M68 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 189.8667,
       "dec": -26.7442,
       "magnitude": 7.8,
@@ -1452,7 +1452,7 @@
     {
       "id": "m69",
       "name": "M69 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 279.0983,
       "dec": -32.3478,
       "magnitude": 7.6,
@@ -1461,7 +1461,7 @@
     {
       "id": "m70",
       "name": "M70 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 280.8042,
       "dec": -32.2917,
       "magnitude": 7.9,
@@ -1470,7 +1470,7 @@
     {
       "id": "m71",
       "name": "M71 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 298.4433,
       "dec": 18.7792,
       "magnitude": 8.2,
@@ -1479,7 +1479,7 @@
     {
       "id": "m72",
       "name": "M72 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 313.365,
       "dec": -12.5372,
       "magnitude": 9.3,
@@ -1488,7 +1488,7 @@
     {
       "id": "m73",
       "name": "M73 - Asterism",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 314.75,
       "dec": -12.6333,
       "magnitude": 9.0,
@@ -1497,7 +1497,7 @@
     {
       "id": "m75",
       "name": "M75 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 301.52,
       "dec": -21.9211,
       "magnitude": 8.5,
@@ -1506,7 +1506,7 @@
     {
       "id": "m79",
       "name": "M79 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 81.0442,
       "dec": -24.5247,
       "magnitude": 7.7,
@@ -1515,7 +1515,7 @@
     {
       "id": "m80",
       "name": "M80 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 244.26,
       "dec": -22.9758,
       "magnitude": 7.3,
@@ -1596,7 +1596,7 @@
     {
       "id": "m92",
       "name": "M92 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 259.2808,
       "dec": 43.1358,
       "magnitude": 6.4,
@@ -1605,7 +1605,7 @@
     {
       "id": "m93",
       "name": "M93 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 116.1333,
       "dec": -23.8667,
       "magnitude": 6.0,
@@ -1641,7 +1641,7 @@
     {
       "id": "m103",
       "name": "M103 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 23.3417,
       "dec": 60.65,
       "magnitude": 7.4,
@@ -1659,7 +1659,7 @@
     {
       "id": "m107",
       "name": "M107 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 248.1333,
       "dec": -13.0531,
       "magnitude": 7.9,
@@ -1713,7 +1713,7 @@
     {
       "id": "ngc457",
       "name": "NGC 457 - Owl Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 19.8792,
       "dec": 58.2833,
       "magnitude": 6.4,
@@ -1722,7 +1722,7 @@
     {
       "id": "ngc663",
       "name": "NGC 663 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 26.6583,
       "dec": 61.2167,
       "magnitude": 7.1,
@@ -1731,7 +1731,7 @@
     {
       "id": "ngc752",
       "name": "NGC 752 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 29.2417,
       "dec": 37.8167,
       "magnitude": 5.7,
@@ -1749,7 +1749,7 @@
     {
       "id": "ngc1027",
       "name": "NGC 1027 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 40.6667,
       "dec": 61.6,
       "magnitude": 6.7,
@@ -1758,7 +1758,7 @@
     {
       "id": "ngc1245",
       "name": "NGC 1245 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 49.0167,
       "dec": 47.2333,
       "magnitude": 8.4,
@@ -1767,7 +1767,7 @@
     {
       "id": "ngc1342",
       "name": "NGC 1342 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 52.8667,
       "dec": 37.3833,
       "magnitude": 6.7,
@@ -1776,7 +1776,7 @@
     {
       "id": "ngc1502",
       "name": "NGC 1502 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 60.7583,
       "dec": 62.3333,
       "magnitude": 5.7,
@@ -1785,7 +1785,7 @@
     {
       "id": "ngc1528",
       "name": "NGC 1528 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 63.775,
       "dec": 51.2167,
       "magnitude": 6.4,
@@ -1794,7 +1794,7 @@
     {
       "id": "ngc1545",
       "name": "NGC 1545 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 65.2417,
       "dec": 50.25,
       "magnitude": 6.2,
@@ -1803,7 +1803,7 @@
     {
       "id": "ngc1647",
       "name": "NGC 1647 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 71.4833,
       "dec": 19.0833,
       "magnitude": 6.4,
@@ -1812,7 +1812,7 @@
     {
       "id": "ngc1664",
       "name": "NGC 1664 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 72.6917,
       "dec": 43.6833,
       "magnitude": 7.6,
@@ -1821,7 +1821,7 @@
     {
       "id": "ngc1746",
       "name": "NGC 1746 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 75.7917,
       "dec": 23.7833,
       "magnitude": 6.1,
@@ -1830,7 +1830,7 @@
     {
       "id": "ngc1778",
       "name": "NGC 1778 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 77.1083,
       "dec": 37.0333,
       "magnitude": 7.7,
@@ -1848,7 +1848,7 @@
     {
       "id": "ngc1857",
       "name": "NGC 1857 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 80.0,
       "dec": 39.35,
       "magnitude": 7.0,
@@ -1857,7 +1857,7 @@
     {
       "id": "ngc1893",
       "name": "NGC 1893 - Open Cluster with Nebulosity",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 80.6917,
       "dec": 33.4333,
       "magnitude": 7.5,
@@ -1866,7 +1866,7 @@
     {
       "id": "ngc1907",
       "name": "NGC 1907 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 82.0167,
       "dec": 35.3,
       "magnitude": 8.2,
@@ -1875,7 +1875,7 @@
     {
       "id": "ngc1912",
       "name": "NGC 1912 - Auriga Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 82.1625,
       "dec": 35.8167,
       "magnitude": 6.4,
@@ -1884,7 +1884,7 @@
     {
       "id": "ngc1960",
       "name": "NGC 1960 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 84.0833,
       "dec": 34.1333,
       "magnitude": 6.0,
@@ -1893,7 +1893,7 @@
     {
       "id": "ngc1981",
       "name": "NGC 1981 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 83.7917,
       "dec": -4.4333,
       "magnitude": 4.2,
@@ -1902,7 +1902,7 @@
     {
       "id": "ngc2099",
       "name": "NGC 2099 - Open Cluster (M37)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 88.0708,
       "dec": 32.55,
       "magnitude": 5.6,
@@ -1911,7 +1911,7 @@
     {
       "id": "ngc2158",
       "name": "NGC 2158 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 91.8625,
       "dec": 24.0958,
       "magnitude": 8.6,
@@ -1920,7 +1920,7 @@
     {
       "id": "ngc2169",
       "name": "NGC 2169 - 37 Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 92.0958,
       "dec": 13.9667,
       "magnitude": 5.9,
@@ -1929,7 +1929,7 @@
     {
       "id": "ngc2232",
       "name": "NGC 2232 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 96.9333,
       "dec": -4.7667,
       "magnitude": 3.9,
@@ -1938,7 +1938,7 @@
     {
       "id": "ngc2251",
       "name": "NGC 2251 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 97.5417,
       "dec": 8.3667,
       "magnitude": 7.3,
@@ -1947,7 +1947,7 @@
     {
       "id": "ngc2266",
       "name": "NGC 2266 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 101.0333,
       "dec": 26.9667,
       "magnitude": 9.5,
@@ -1956,7 +1956,7 @@
     {
       "id": "ngc2281",
       "name": "NGC 2281 - Broken Heart Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 102.0833,
       "dec": 41.05,
       "magnitude": 5.4,
@@ -1965,7 +1965,7 @@
     {
       "id": "ngc2301",
       "name": "NGC 2301 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 103.1917,
       "dec": 0.4667,
       "magnitude": 6.0,
@@ -1974,7 +1974,7 @@
     {
       "id": "ngc2323",
       "name": "NGC 2323 - Open Cluster (M50)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 105.6875,
       "dec": -8.35,
       "magnitude": 5.9,
@@ -1983,7 +1983,7 @@
     {
       "id": "ngc2324",
       "name": "NGC 2324 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 105.6833,
       "dec": 1.0333,
       "magnitude": 8.4,
@@ -1992,7 +1992,7 @@
     {
       "id": "ngc2335",
       "name": "NGC 2335 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 106.3833,
       "dec": -10.0333,
       "magnitude": 7.2,
@@ -2001,7 +2001,7 @@
     {
       "id": "ngc2343",
       "name": "NGC 2343 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 106.6833,
       "dec": -10.6167,
       "magnitude": 6.7,
@@ -2010,7 +2010,7 @@
     {
       "id": "ngc2353",
       "name": "NGC 2353 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 108.1417,
       "dec": -10.2667,
       "magnitude": 7.1,
@@ -2019,7 +2019,7 @@
     {
       "id": "ngc2354",
       "name": "NGC 2354 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 108.5667,
       "dec": -25.7333,
       "magnitude": 6.5,
@@ -2028,7 +2028,7 @@
     {
       "id": "ngc2360",
       "name": "NGC 2360 - Caroline's Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 109.4333,
       "dec": -15.6333,
       "magnitude": 7.2,
@@ -2037,7 +2037,7 @@
     {
       "id": "ngc2362",
       "name": "NGC 2362 - Tau CMa Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 109.6833,
       "dec": -24.95,
       "magnitude": 4.1,
@@ -2046,7 +2046,7 @@
     {
       "id": "ngc2367",
       "name": "NGC 2367 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 110.0333,
       "dec": -21.8833,
       "magnitude": 7.9,
@@ -2055,7 +2055,7 @@
     {
       "id": "ngc2395",
       "name": "NGC 2395 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 111.9833,
       "dec": 13.6,
       "magnitude": 8.0,
@@ -2064,7 +2064,7 @@
     {
       "id": "ngc2420",
       "name": "NGC 2420 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 114.6333,
       "dec": 21.5833,
       "magnitude": 8.3,
@@ -2073,7 +2073,7 @@
     {
       "id": "ngc2422",
       "name": "NGC 2422 - Open Cluster (M47)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 114.15,
       "dec": -14.5,
       "magnitude": 4.4,
@@ -2082,7 +2082,7 @@
     {
       "id": "ngc2423",
       "name": "NGC 2423 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 114.2833,
       "dec": -13.8667,
       "magnitude": 6.7,
@@ -2091,7 +2091,7 @@
     {
       "id": "ngc2437",
       "name": "NGC 2437 - Open Cluster (M46)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 115.4417,
       "dec": -14.8167,
       "magnitude": 6.1,
@@ -2109,7 +2109,7 @@
     {
       "id": "ngc2477",
       "name": "NGC 2477 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 118.05,
       "dec": -38.5333,
       "magnitude": 5.8,
@@ -2118,7 +2118,7 @@
     {
       "id": "ngc2506",
       "name": "NGC 2506 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 120.0167,
       "dec": -10.7833,
       "magnitude": 7.6,
@@ -2127,7 +2127,7 @@
     {
       "id": "ngc2516",
       "name": "NGC 2516 - Southern Beehive",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 119.525,
       "dec": -60.8667,
       "magnitude": 3.8,
@@ -2136,7 +2136,7 @@
     {
       "id": "ngc2539",
       "name": "NGC 2539 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 122.6583,
       "dec": -12.8333,
       "magnitude": 6.5,
@@ -2145,7 +2145,7 @@
     {
       "id": "ngc2547",
       "name": "NGC 2547 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 122.5125,
       "dec": -49.2167,
       "magnitude": 4.7,
@@ -2154,7 +2154,7 @@
     {
       "id": "ngc2548",
       "name": "NGC 2548 - Open Cluster (M48)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 123.4208,
       "dec": -5.75,
       "magnitude": 5.5,
@@ -2163,7 +2163,7 @@
     {
       "id": "ngc2567",
       "name": "NGC 2567 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 124.6,
       "dec": -30.6333,
       "magnitude": 7.4,
@@ -2172,7 +2172,7 @@
     {
       "id": "ngc2632",
       "name": "NGC 2632 - Beehive Cluster (M44)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 130.0,
       "dec": 19.9833,
       "magnitude": 3.1,
@@ -2451,7 +2451,7 @@
     {
       "id": "ngc4147",
       "name": "NGC 4147 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 182.525,
       "dec": 18.5417,
       "magnitude": 10.2,
@@ -2775,7 +2775,7 @@
     {
       "id": "ngc5466",
       "name": "NGC 5466 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 211.3638,
       "dec": 28.5342,
       "magnitude": 9.0,
@@ -2865,7 +2865,7 @@
     {
       "id": "ngc5897",
       "name": "NGC 5897 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 229.3521,
       "dec": -21.0108,
       "magnitude": 8.4,
@@ -2901,7 +2901,7 @@
     {
       "id": "ngc6067",
       "name": "NGC 6067 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 243.2958,
       "dec": -54.2167,
       "magnitude": 5.6,
@@ -2910,7 +2910,7 @@
     {
       "id": "ngc6087",
       "name": "NGC 6087 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 244.7625,
       "dec": -57.9333,
       "magnitude": 5.4,
@@ -2919,7 +2919,7 @@
     {
       "id": "ngc6124",
       "name": "NGC 6124 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 246.4417,
       "dec": -40.6667,
       "magnitude": 5.8,
@@ -2928,7 +2928,7 @@
     {
       "id": "ngc6193",
       "name": "NGC 6193 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 250.2917,
       "dec": -48.7667,
       "magnitude": 5.2,
@@ -2955,7 +2955,7 @@
     {
       "id": "ngc6231",
       "name": "NGC 6231 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 253.5375,
       "dec": -41.8333,
       "magnitude": 2.6,
@@ -2964,7 +2964,7 @@
     {
       "id": "ngc6242",
       "name": "NGC 6242 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 253.9083,
       "dec": -39.4667,
       "magnitude": 6.4,
@@ -2973,7 +2973,7 @@
     {
       "id": "ngc6259",
       "name": "NGC 6259 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 255.3,
       "dec": -44.65,
       "magnitude": 8.0,
@@ -2982,7 +2982,7 @@
     {
       "id": "ngc6266",
       "name": "NGC 6266 - Globular Cluster (M62)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 255.3033,
       "dec": -30.1136,
       "magnitude": 6.5,
@@ -2991,7 +2991,7 @@
     {
       "id": "ngc6273",
       "name": "NGC 6273 - Globular Cluster (M19)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 255.6567,
       "dec": -26.2678,
       "magnitude": 6.8,
@@ -3000,7 +3000,7 @@
     {
       "id": "ngc6284",
       "name": "NGC 6284 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 256.1188,
       "dec": -24.7647,
       "magnitude": 8.9,
@@ -3009,7 +3009,7 @@
     {
       "id": "ngc6304",
       "name": "NGC 6304 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 258.6333,
       "dec": -29.4617,
       "magnitude": 8.4,
@@ -3018,7 +3018,7 @@
     {
       "id": "ngc6316",
       "name": "NGC 6316 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 259.155,
       "dec": -28.14,
       "magnitude": 8.4,
@@ -3027,7 +3027,7 @@
     {
       "id": "ngc6341",
       "name": "NGC 6341 - Globular Cluster (M92)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 259.2808,
       "dec": 43.1358,
       "magnitude": 6.4,
@@ -3036,7 +3036,7 @@
     {
       "id": "ngc6356",
       "name": "NGC 6356 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 260.8942,
       "dec": -17.8128,
       "magnitude": 8.2,
@@ -3045,7 +3045,7 @@
     {
       "id": "ngc6362",
       "name": "NGC 6362 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 262.975,
       "dec": -67.0483,
       "magnitude": 7.6,
@@ -3054,7 +3054,7 @@
     {
       "id": "ngc6388",
       "name": "NGC 6388 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 264.0717,
       "dec": -44.7356,
       "magnitude": 6.7,
@@ -3063,7 +3063,7 @@
     {
       "id": "ngc6397",
       "name": "NGC 6397 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 265.1754,
       "dec": -53.6744,
       "magnitude": 5.7,
@@ -3072,7 +3072,7 @@
     {
       "id": "ngc6402",
       "name": "NGC 6402 - Globular Cluster (M14)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 264.4017,
       "dec": -3.2456,
       "magnitude": 7.6,
@@ -3081,7 +3081,7 @@
     {
       "id": "ngc6440",
       "name": "NGC 6440 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 267.2175,
       "dec": -20.3594,
       "magnitude": 9.2,
@@ -3090,7 +3090,7 @@
     {
       "id": "ngc6441",
       "name": "NGC 6441 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 267.5542,
       "dec": -37.0514,
       "magnitude": 7.2,
@@ -3099,7 +3099,7 @@
     {
       "id": "ngc6451",
       "name": "NGC 6451 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 267.725,
       "dec": -30.2167,
       "magnitude": 8.2,
@@ -3108,7 +3108,7 @@
     {
       "id": "ngc6496",
       "name": "NGC 6496 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 269.765,
       "dec": -44.26,
       "magnitude": 8.6,
@@ -3126,7 +3126,7 @@
     {
       "id": "ngc6522",
       "name": "NGC 6522 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 270.8917,
       "dec": -30.0339,
       "magnitude": 8.3,
@@ -3135,7 +3135,7 @@
     {
       "id": "ngc6528",
       "name": "NGC 6528 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 271.2067,
       "dec": -30.0556,
       "magnitude": 9.5,
@@ -3144,7 +3144,7 @@
     {
       "id": "ngc6530",
       "name": "NGC 6530 - Open Cluster in M8",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 271.1042,
       "dec": -24.35,
       "magnitude": 4.6,
@@ -3153,7 +3153,7 @@
     {
       "id": "ngc6541",
       "name": "NGC 6541 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 272.0083,
       "dec": -43.7086,
       "magnitude": 6.3,
@@ -3162,7 +3162,7 @@
     {
       "id": "ngc6544",
       "name": "NGC 6544 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 271.8375,
       "dec": -24.9978,
       "magnitude": 7.5,
@@ -3171,7 +3171,7 @@
     {
       "id": "ngc6553",
       "name": "NGC 6553 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 272.3233,
       "dec": -25.9083,
       "magnitude": 8.1,
@@ -3180,7 +3180,7 @@
     {
       "id": "ngc6568",
       "name": "NGC 6568 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 273.2292,
       "dec": -21.6167,
       "magnitude": 8.6,
@@ -3198,7 +3198,7 @@
     {
       "id": "ngc6584",
       "name": "NGC 6584 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 274.6567,
       "dec": -52.2158,
       "magnitude": 7.9,
@@ -3207,7 +3207,7 @@
     {
       "id": "ngc6603",
       "name": "NGC 6603 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 274.5917,
       "dec": -18.4167,
       "magnitude": 11.1,
@@ -3216,7 +3216,7 @@
     {
       "id": "ngc6611",
       "name": "NGC 6611 - Eagle Nebula Cluster (M16)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 274.6583,
       "dec": -13.7833,
       "magnitude": 6.0,
@@ -3234,7 +3234,7 @@
     {
       "id": "ngc6624",
       "name": "NGC 6624 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 275.9183,
       "dec": -30.3611,
       "magnitude": 7.6,
@@ -3243,7 +3243,7 @@
     {
       "id": "ngc6626",
       "name": "NGC 6626 - Globular Cluster (M28)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 276.1367,
       "dec": -24.8697,
       "magnitude": 6.8,
@@ -3252,7 +3252,7 @@
     {
       "id": "ngc6633",
       "name": "NGC 6633 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 276.8458,
       "dec": 6.6167,
       "magnitude": 4.6,
@@ -3261,7 +3261,7 @@
     {
       "id": "ngc6637",
       "name": "NGC 6637 - Globular Cluster (M69)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 279.0983,
       "dec": -32.3478,
       "magnitude": 7.6,
@@ -3270,7 +3270,7 @@
     {
       "id": "ngc6638",
       "name": "NGC 6638 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 277.7325,
       "dec": -25.4972,
       "magnitude": 9.2,
@@ -3279,7 +3279,7 @@
     {
       "id": "ngc6642",
       "name": "NGC 6642 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 277.9767,
       "dec": -23.475,
       "magnitude": 8.9,
@@ -3288,7 +3288,7 @@
     {
       "id": "ngc6645",
       "name": "NGC 6645 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 277.8542,
       "dec": -16.9,
       "magnitude": 8.5,
@@ -3297,7 +3297,7 @@
     {
       "id": "ngc6652",
       "name": "NGC 6652 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 278.94,
       "dec": -32.9908,
       "magnitude": 8.5,
@@ -3306,7 +3306,7 @@
     {
       "id": "ngc6656",
       "name": "NGC 6656 - Sagittarius Cluster (M22)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 279.0992,
       "dec": -23.9047,
       "magnitude": 5.1,
@@ -3315,7 +3315,7 @@
     {
       "id": "ngc6681",
       "name": "NGC 6681 - Globular Cluster (M70)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 280.8042,
       "dec": -32.2917,
       "magnitude": 7.9,
@@ -3324,7 +3324,7 @@
     {
       "id": "ngc6694",
       "name": "NGC 6694 - Open Cluster (M26)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 281.3208,
       "dec": -9.3833,
       "magnitude": 8.0,
@@ -3333,7 +3333,7 @@
     {
       "id": "ngc6705",
       "name": "NGC 6705 - Wild Duck Cluster (M11)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 282.7667,
       "dec": -6.2667,
       "magnitude": 6.3,
@@ -3342,7 +3342,7 @@
     {
       "id": "ngc6712",
       "name": "NGC 6712 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 283.2679,
       "dec": -8.7056,
       "magnitude": 8.1,
@@ -3351,7 +3351,7 @@
     {
       "id": "ngc6715",
       "name": "NGC 6715 - Globular Cluster (M54)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 283.7633,
       "dec": -30.4783,
       "magnitude": 7.6,
@@ -3360,7 +3360,7 @@
     {
       "id": "ngc6717",
       "name": "NGC 6717 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 283.775,
       "dec": -22.7017,
       "magnitude": 9.3,
@@ -3378,7 +3378,7 @@
     {
       "id": "ngc6723",
       "name": "NGC 6723 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 284.8883,
       "dec": -36.6317,
       "magnitude": 6.8,
@@ -3396,7 +3396,7 @@
     {
       "id": "ngc6752",
       "name": "NGC 6752 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 287.7171,
       "dec": -59.9847,
       "magnitude": 5.4,
@@ -3405,7 +3405,7 @@
     {
       "id": "ngc6755",
       "name": "NGC 6755 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 286.6792,
       "dec": 4.2333,
       "magnitude": 7.5,
@@ -3414,7 +3414,7 @@
     {
       "id": "ngc6756",
       "name": "NGC 6756 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 286.7875,
       "dec": 4.7167,
       "magnitude": 10.6,
@@ -3423,7 +3423,7 @@
     {
       "id": "ngc6760",
       "name": "NGC 6760 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 287.8008,
       "dec": 1.0303,
       "magnitude": 9.1,
@@ -3432,7 +3432,7 @@
     {
       "id": "ngc6779",
       "name": "NGC 6779 - Globular Cluster (M56)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 289.1483,
       "dec": 30.1836,
       "magnitude": 8.3,
@@ -3450,7 +3450,7 @@
     {
       "id": "ngc6791",
       "name": "NGC 6791 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 290.2208,
       "dec": 37.7667,
       "magnitude": 9.5,
@@ -3459,7 +3459,7 @@
     {
       "id": "ngc6802",
       "name": "NGC 6802 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 292.6208,
       "dec": 20.25,
       "magnitude": 8.8,
@@ -3468,7 +3468,7 @@
     {
       "id": "ngc6809",
       "name": "NGC 6809 - Globular Cluster (M55)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 294.9983,
       "dec": -30.9647,
       "magnitude": 6.3,
@@ -3486,7 +3486,7 @@
     {
       "id": "ngc6819",
       "name": "NGC 6819 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 295.325,
       "dec": 40.1833,
       "magnitude": 7.3,
@@ -3504,7 +3504,7 @@
     {
       "id": "ngc6834",
       "name": "NGC 6834 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 297.775,
       "dec": 29.4,
       "magnitude": 7.8,
@@ -3513,7 +3513,7 @@
     {
       "id": "ngc6838",
       "name": "NGC 6838 - Globular Cluster (M71)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 298.4433,
       "dec": 18.7792,
       "magnitude": 8.2,
@@ -3531,7 +3531,7 @@
     {
       "id": "ngc6864",
       "name": "NGC 6864 - Globular Cluster (M75)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 301.52,
       "dec": -21.9211,
       "magnitude": 8.5,
@@ -3540,7 +3540,7 @@
     {
       "id": "ngc6871",
       "name": "NGC 6871 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 301.05,
       "dec": 35.7667,
       "magnitude": 5.2,
@@ -3549,7 +3549,7 @@
     {
       "id": "ngc6882",
       "name": "NGC 6882 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 302.0917,
       "dec": 26.5,
       "magnitude": 8.1,
@@ -3558,7 +3558,7 @@
     {
       "id": "ngc6885",
       "name": "NGC 6885 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 302.0208,
       "dec": 26.4833,
       "magnitude": 5.7,
@@ -3567,7 +3567,7 @@
     {
       "id": "ngc6910",
       "name": "NGC 6910 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 305.7583,
       "dec": 40.7833,
       "magnitude": 7.4,
@@ -3576,7 +3576,7 @@
     {
       "id": "ngc6913",
       "name": "NGC 6913 - Open Cluster (M29)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 305.9792,
       "dec": 38.5167,
       "magnitude": 7.1,
@@ -3585,7 +3585,7 @@
     {
       "id": "ngc6934",
       "name": "NGC 6934 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 308.5475,
       "dec": 7.4044,
       "magnitude": 8.9,
@@ -3594,7 +3594,7 @@
     {
       "id": "ngc6939",
       "name": "NGC 6939 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 307.8958,
       "dec": 60.65,
       "magnitude": 7.8,
@@ -3603,7 +3603,7 @@
     {
       "id": "ngc6940",
       "name": "NGC 6940 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 308.6167,
       "dec": 28.2833,
       "magnitude": 6.3,
@@ -3621,7 +3621,7 @@
     {
       "id": "ngc6981",
       "name": "NGC 6981 - Globular Cluster (M72)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 313.365,
       "dec": -12.5372,
       "magnitude": 9.3,
@@ -3630,7 +3630,7 @@
     {
       "id": "ngc7006",
       "name": "NGC 7006 - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 315.3725,
       "dec": 16.1867,
       "magnitude": 10.6,
@@ -3657,7 +3657,7 @@
     {
       "id": "ngc7062",
       "name": "NGC 7062 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 319.3583,
       "dec": 46.3833,
       "magnitude": 8.3,
@@ -3666,7 +3666,7 @@
     {
       "id": "ngc7078",
       "name": "NGC 7078 - Great Pegasus Cluster (M15)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 322.493,
       "dec": 12.167,
       "magnitude": 6.2,
@@ -3675,7 +3675,7 @@
     {
       "id": "ngc7089",
       "name": "NGC 7089 - Globular Cluster (M2)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 323.3625,
       "dec": -0.8233,
       "magnitude": 6.5,
@@ -3684,7 +3684,7 @@
     {
       "id": "ngc7092",
       "name": "NGC 7092 - Open Cluster (M39)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 322.9417,
       "dec": 48.4333,
       "magnitude": 5.5,
@@ -3693,7 +3693,7 @@
     {
       "id": "ngc7099",
       "name": "NGC 7099 - Globular Cluster (M30)",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 325.0917,
       "dec": -23.1797,
       "magnitude": 7.2,
@@ -3702,7 +3702,7 @@
     {
       "id": "ngc7142",
       "name": "NGC 7142 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 326.2958,
       "dec": 65.7833,
       "magnitude": 9.3,
@@ -3711,7 +3711,7 @@
     {
       "id": "ngc7160",
       "name": "NGC 7160 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 328.4708,
       "dec": 62.6,
       "magnitude": 6.1,
@@ -3720,7 +3720,7 @@
     {
       "id": "ngc7209",
       "name": "NGC 7209 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 331.2875,
       "dec": 46.5,
       "magnitude": 7.7,
@@ -3729,7 +3729,7 @@
     {
       "id": "ngc7243",
       "name": "NGC 7243 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 333.7875,
       "dec": 49.8833,
       "magnitude": 6.4,
@@ -3738,7 +3738,7 @@
     {
       "id": "ngc7296",
       "name": "NGC 7296 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 337.5875,
       "dec": 52.3167,
       "magnitude": 9.7,
@@ -3792,7 +3792,7 @@
     {
       "id": "ngc7510",
       "name": "NGC 7510 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 347.7583,
       "dec": 60.5667,
       "magnitude": 7.9,
@@ -3828,7 +3828,7 @@
     {
       "id": "ngc7654",
       "name": "NGC 7654 - Open Cluster (M52)",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 351.2,
       "dec": 61.5833,
       "magnitude": 7.3,
@@ -3837,7 +3837,7 @@
     {
       "id": "ngc7686",
       "name": "NGC 7686 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 352.8375,
       "dec": 49.1333,
       "magnitude": 5.6,
@@ -3855,7 +3855,7 @@
     {
       "id": "ngc7762",
       "name": "NGC 7762 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 357.4458,
       "dec": 68.0333,
       "magnitude": 10.0,
@@ -3918,7 +3918,7 @@
     {
       "id": "ic2602",
       "name": "IC 2602 - Southern Pleiades",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 160.7333,
       "dec": -64.4,
       "magnitude": 1.9,
@@ -3972,7 +3972,7 @@
     {
       "id": "ic4665",
       "name": "IC 4665 - Summer Beehive",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 266.5542,
       "dec": 5.6333,
       "magnitude": 4.2,
@@ -3981,7 +3981,7 @@
     {
       "id": "ic4756",
       "name": "IC 4756 - Graff's Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 279.6625,
       "dec": 5.4333,
       "magnitude": 4.6,
@@ -4143,7 +4143,7 @@
     {
       "id": "47tuc",
       "name": "47 Tucanae - Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 6.0233,
       "dec": -72.0814,
       "magnitude": 4.0,
@@ -4152,7 +4152,7 @@
     {
       "id": "stock2",
       "name": "Stock 2 - Muscle Man Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 33.75,
       "dec": 59.4833,
       "magnitude": 4.4,
@@ -4161,7 +4161,7 @@
     {
       "id": "trumpler2",
       "name": "Trumpler 2 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 39.25,
       "dec": 55.9,
       "magnitude": 5.9,
@@ -4170,7 +4170,7 @@
     {
       "id": "berkeley87",
       "name": "Berkeley 87 - Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 303.5,
       "dec": 37.3667,
       "magnitude": 8.5,
@@ -4449,7 +4449,7 @@
     {
       "id": "ngc362",
       "name": "NGC 362 - Globular Cluster near SMC",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 15.8092,
       "dec": -70.8489,
       "magnitude": 6.6,
@@ -4467,7 +4467,7 @@
     {
       "id": "ngc1850",
       "name": "NGC 1850 - Double Cluster in LMC",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 76.7708,
       "dec": -68.7617,
       "magnitude": 9.0,
@@ -4503,7 +4503,7 @@
     {
       "id": "ngc1866",
       "name": "NGC 1866 - LMC Globular Cluster",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 77.3333,
       "dec": -65.4667,
       "magnitude": 9.7,
@@ -4512,7 +4512,7 @@
     {
       "id": "ngc2164",
       "name": "NGC 2164 - LMC Open Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 89.3,
       "dec": -68.5167,
       "magnitude": 10.3,
@@ -4539,7 +4539,7 @@
     {
       "id": "ngc3532",
       "name": "NGC 3532 - Wishing Well Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 166.4167,
       "dec": -58.7167,
       "magnitude": 3.0,
@@ -4548,7 +4548,7 @@
     {
       "id": "ngc3293",
       "name": "NGC 3293 - Gem Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 158.9583,
       "dec": -58.2333,
       "magnitude": 4.7,
@@ -4566,7 +4566,7 @@
     {
       "id": "ic2581",
       "name": "IC 2581 - Open Cluster in Carina",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 151.1667,
       "dec": -57.6167,
       "magnitude": 4.3,
@@ -4575,7 +4575,7 @@
     {
       "id": "trumpler14",
       "name": "Trumpler 14 - Young Cluster in Carina",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 160.9375,
       "dec": -59.55,
       "magnitude": 5.5,
@@ -4584,7 +4584,7 @@
     {
       "id": "trumpler16",
       "name": "Trumpler 16 - Eta Carinae Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 161.2917,
       "dec": -59.7167,
       "magnitude": 5.0,
@@ -4593,7 +4593,7 @@
     {
       "id": "collinder228",
       "name": "Collinder 228 - Open Cluster in Carina",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 161.0,
       "dec": -60.0833,
       "magnitude": 5.0,
@@ -5133,7 +5133,7 @@
     {
       "id": "ngc288",
       "name": "NGC 288 - Globular in Sculptor",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 13.1988,
       "dec": -26.59,
       "magnitude": 8.1,
@@ -5142,7 +5142,7 @@
     {
       "id": "ngc1261",
       "name": "NGC 1261 - Globular in Horologium",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 48.0675,
       "dec": -55.2164,
       "magnitude": 8.4,
@@ -5151,7 +5151,7 @@
     {
       "id": "ngc1851",
       "name": "NGC 1851 - Globular in Columba",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 78.5283,
       "dec": -40.0467,
       "magnitude": 7.1,
@@ -5160,7 +5160,7 @@
     {
       "id": "ngc2808",
       "name": "NGC 2808 - Massive Globular in Carina",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 138.0129,
       "dec": -64.8631,
       "magnitude": 6.2,
@@ -5169,7 +5169,7 @@
     {
       "id": "ngc4833",
       "name": "NGC 4833 - Globular in Musca",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 194.8917,
       "dec": -70.8764,
       "magnitude": 6.9,
@@ -5178,7 +5178,7 @@
     {
       "id": "ngc5286",
       "name": "NGC 5286 - Globular in Centaurus",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 206.6117,
       "dec": -51.3739,
       "magnitude": 7.6,
@@ -5187,7 +5187,7 @@
     {
       "id": "ngc5927",
       "name": "NGC 5927 - Globular in Lupus",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 232.0033,
       "dec": -50.6731,
       "magnitude": 8.0,
@@ -5196,7 +5196,7 @@
     {
       "id": "ngc5986",
       "name": "NGC 5986 - Globular in Lupus",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 236.5125,
       "dec": -37.7864,
       "magnitude": 7.1,
@@ -5205,7 +5205,7 @@
     {
       "id": "ngc6101",
       "name": "NGC 6101 - Globular in Apus",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 246.45,
       "dec": -72.2017,
       "magnitude": 9.3,
@@ -5214,7 +5214,7 @@
     {
       "id": "ngc6352",
       "name": "NGC 6352 - Globular in Ara",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 260.9958,
       "dec": -48.4222,
       "magnitude": 8.1,
@@ -5223,7 +5223,7 @@
     {
       "id": "ngc3201",
       "name": "NGC 3201 - Globular in Vela",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 154.4033,
       "dec": -46.4117,
       "magnitude": 6.8,
@@ -5232,7 +5232,7 @@
     {
       "id": "ngc4755",
       "name": "NGC 4755 - Jewel Box Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 193.5,
       "dec": -60.3667,
       "magnitude": 4.2,
@@ -5241,7 +5241,7 @@
     {
       "id": "ngc3766",
       "name": "NGC 3766 - Pearl Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 174.3958,
       "dec": -61.6167,
       "magnitude": 5.3,
@@ -5250,7 +5250,7 @@
     {
       "id": "ngc3114",
       "name": "NGC 3114 - George's Cluster in Carina",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 150.7167,
       "dec": -60.1167,
       "magnitude": 4.2,
@@ -5259,7 +5259,7 @@
     {
       "id": "ngc2451",
       "name": "NGC 2451 - Bright Puppis Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 115.3333,
       "dec": -37.9667,
       "magnitude": 2.8,
@@ -5268,7 +5268,7 @@
     {
       "id": "ngc6025",
       "name": "NGC 6025 - Open Cluster in Triangulum Australe",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 240.7958,
       "dec": -60.4333,
       "magnitude": 5.1,
@@ -5277,7 +5277,7 @@
     {
       "id": "ic2391",
       "name": "IC 2391 - Omicron Velorum Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 130.1667,
       "dec": -53.0333,
       "magnitude": 2.5,
@@ -5286,7 +5286,7 @@
     {
       "id": "ic2395",
       "name": "IC 2395 - Open Cluster in Vela",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 131.0417,
       "dec": -48.1167,
       "magnitude": 4.6,
@@ -5295,7 +5295,7 @@
     {
       "id": "ngc5822",
       "name": "NGC 5822 - Rich Open Cluster in Lupus",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 226.0625,
       "dec": -54.35,
       "magnitude": 6.5,
@@ -5304,7 +5304,7 @@
     {
       "id": "ngc5617",
       "name": "NGC 5617 - Open Cluster in Centaurus",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 217.525,
       "dec": -60.7167,
       "magnitude": 6.3,
@@ -5313,7 +5313,7 @@
     {
       "id": "ngc5460",
       "name": "NGC 5460 - Open Cluster in Centaurus",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 211.5125,
       "dec": -48.3333,
       "magnitude": 5.6,
@@ -5322,7 +5322,7 @@
     {
       "id": "ic4651",
       "name": "IC 4651 - Open Cluster in Ara",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 261.7083,
       "dec": -49.9333,
       "magnitude": 6.9,
@@ -5331,7 +5331,7 @@
     {
       "id": "ic2488",
       "name": "IC 2488 - Open Cluster in Vela",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 141.875,
       "dec": -56.9833,
       "magnitude": 7.4,
@@ -5340,7 +5340,7 @@
     {
       "id": "ngc6383",
       "name": "NGC 6383 - Open Cluster in Scorpius",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 263.1833,
       "dec": -32.5833,
       "magnitude": 5.5,
@@ -5349,7 +5349,7 @@
     {
       "id": "ngc6281",
       "name": "NGC 6281 - Open Cluster in Scorpius",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 256.1583,
       "dec": -37.9833,
       "magnitude": 5.4,
@@ -5358,7 +5358,7 @@
     {
       "id": "ngc2439",
       "name": "NGC 2439 - Open Cluster in Puppis",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 114.8042,
       "dec": -31.6833,
       "magnitude": 6.9,
@@ -5367,7 +5367,7 @@
     {
       "id": "ngc2298",
       "name": "NGC 2298 - Globular in Puppis",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 102.2475,
       "dec": -36.0053,
       "magnitude": 9.3,
@@ -5403,7 +5403,7 @@
     {
       "id": "westerlund2",
       "name": "Westerlund 2 - Young Massive Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 155.9333,
       "dec": -57.7667,
       "magnitude": 10.0,
@@ -5466,7 +5466,7 @@
     {
       "id": "mel105",
       "name": "Melotte 105 - Open Cluster in Carina",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 170.5833,
       "dec": -63.4833,
       "magnitude": 8.5,
@@ -5475,7 +5475,7 @@
     {
       "id": "mel101",
       "name": "Melotte 101 - Open Cluster in Carina",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 165.25,
       "dec": -65.1667,
       "magnitude": 8.4,
@@ -5502,7 +5502,7 @@
     {
       "id": "ngc6250",
       "name": "NGC 6250 - Open Cluster in Ara",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 254.1042,
       "dec": -45.9333,
       "magnitude": 5.9,
@@ -5511,7 +5511,7 @@
     {
       "id": "ngc6208",
       "name": "NGC 6208 - Open Cluster in Ara",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 251.4333,
       "dec": -53.7167,
       "magnitude": 7.2,
@@ -5520,7 +5520,7 @@
     {
       "id": "ngc2660",
       "name": "NGC 2660 - Rich Open Cluster in Vela",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 130.55,
       "dec": -47.1833,
       "magnitude": 8.8,
@@ -5529,7 +5529,7 @@
     {
       "id": "collinder261",
       "name": "Collinder 261 - Old Open Cluster in Musca",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 182.5167,
       "dec": -68.3667,
       "magnitude": 10.8,
@@ -5538,7 +5538,7 @@
     {
       "id": "ngc6139",
       "name": "NGC 6139 - Globular in Scorpius",
-      "type": "Cluster",
+      "type": "Globular Cluster",
       "ra": 246.9208,
       "dec": -38.8483,
       "magnitude": 9.1,
@@ -5547,7 +5547,7 @@
     {
       "id": "ngc3590",
       "name": "NGC 3590 - Open Cluster in Carina",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 168.0542,
       "dec": -60.7833,
       "magnitude": 8.2,
@@ -5556,7 +5556,7 @@
     {
       "id": "ngc6167",
       "name": "NGC 6167 - Open Cluster in Norma",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 247.75,
       "dec": -49.7667,
       "magnitude": 6.7,
@@ -5583,7 +5583,7 @@
     {
       "id": "ngc188",
       "name": "NGC 188 - Polarissima Cluster",
-      "type": "Cluster",
+      "type": "Open Cluster",
       "ra": 11.798,
       "dec": 85.244,
       "magnitude": 8.1,

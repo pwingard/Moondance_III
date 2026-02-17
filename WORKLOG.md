@@ -209,6 +209,20 @@ Moondance-iOS is an astrophotography planning app. Users pick a location + deep 
 - ⏳ Still needed: App Store metadata (description, keywords, screenshots), final build upload
 - ⏳ MARKETING_VERSION needs updating from 0.8 to 1.0 before submission
 
-### Committed
-- `b880103` — "Add favorites, Wikipedia integration, enhanced target picker, NGC 2170"
-- ⏳ Current work NOT YET COMMITTED — all round 2 bug fixes + performance fix above
+## 2026-02-17 — Session 7 (Bug fixes, categories, bundle ID)
+
+### What was done
+1. ✅ **Snake Nebula visibility date fix** — Geometric estimate was off because 45° nighttime margin missed pre-dawn targets. Increased to 75° margin (~5h before/after midnight = 7 PM to 5 AM). Added verification loop that checks estimated date ±7 days with full nighttime hour scan.
+2. ✅ **Split Cluster into Open Cluster / Globular Cluster** — Updated all 256 entries in targets.json. 87 globular, 169 open. Now appear as separate filter pills in SearchableTargetPicker.
+3. ✅ **"Up now" → "Tonight [time]"** — Changed label to show "Tonight 7 PM", "Tonight 3 AM", etc. Scans 7 PM to 5 AM in 1-hour steps to find first hour target clears minAlt.
+4. ✅ **Bundle ID fix** — Changed from `com.seetheshow.moondance3` to `com.pfwingard.moondance` in both Debug and Release configs to match App Store Connect registration.
+5. ✅ **Test coordinates provided** — M42 (83.82, -5.39), M31 (10.68, 41.27), M57 (283.40, 33.03), IC 434 (85.24, -2.46)
+
+### Files Modified
+- `Services/AstronomyEngine.swift` — firstVisibleInfo: wider nighttime margin, verification loop, findRiseTime() for "Tonight X PM/AM" labels
+- `Data/targets.json` — split "Cluster" → "Open Cluster" / "Globular Cluster" (256 entries)
+- `Moondance-iOS.xcodeproj/project.pbxproj` — bundle ID → com.pfwingard.moondance
+
+### Commits
+- `076a11d` — "Fix visibility cache, bug fixes, App Store prep" (session 6 work, not yet pushed)
+- ⏳ Session 7 work NOT YET COMMITTED

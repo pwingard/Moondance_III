@@ -550,9 +550,12 @@ nonisolated struct AstronomyEngine: Sendable {
             haLimitDeg = acos(cosHALimit).radiansToDegrees
         }
 
-        // Days the target is above minAlt centered on transit date
-        // Add 45° margin for nighttime hours (9PM/3AM, not just midnight)
-        let visibleHalfWindowDays = (haLimitDeg + 45.0) / 0.9856
+        // Nighttime check offsets from midnight (hours). Covers 7 PM to 5 AM.
+        let nightHourOffsets: [Double] = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+
+        // Days the target is above minAlt centered on transit date.
+        // Use 75° margin (~5h before/after midnight) to catch pre-dawn/early-evening targets.
+        let visibleHalfWindowDays = (haLimitDeg + 75.0) / 0.9856
 
         // Midnight transit: when HA=0 at midnight → LST = RA
         let raOffset = (targetRA - ref.refLST).mod(360)
@@ -561,21 +564,67 @@ nonisolated struct AstronomyEngine: Sendable {
         // First visible ≈ transit date minus half the visible window
         let firstVisibleDay = max(0, daysToTransit - Int(visibleHalfWindowDays))
 
-        // Check if it's visible now
+        // Check if it's visible tonight (scan 7 PM to 5 AM)
         if firstVisibleDay <= 0 {
-            // Quick altitude checks: midnight, 9 PM, 3 AM
-            let altMid = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: ref.refJD, lat: ref.latitude, lon: ref.longitude).alt
-            if altMid >= minAlt { return ("Up now", 0) }
-            let alt9pm = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: ref.refJD - 3.0/24.0, lat: ref.latitude, lon: ref.longitude).alt
-            if alt9pm >= minAlt { return ("Up now", 0) }
-            let alt3am = equatorialToAltAz(ra: targetRA, dec: targetDec, jd: ref.refJD + 3.0/24.0, lat: ref.latitude, lon: ref.longitude).alt
-            if alt3am >= minAlt { return ("Up now", 0) }
+            if let riseTime = findRiseTime(targetRA: targetRA, targetDec: targetDec,
+                                            jdMidnight: ref.refJD, ref: ref, minAlt: minAlt,
+                                            hourOffsets: nightHourOffsets) {
+                return ("Tonight \(riseTime)", 0)
+            }
         }
 
-        // Return the estimated first-visible date
-        let resultDay = max(1, firstVisibleDay)
+        // For future dates, verify and refine the estimate by checking actual nighttime altitudes
+        var resultDay = max(1, firstVisibleDay)
+
+        // Check the estimated date and a few days before to catch earlier visibility
+        for tryDay in max(1, resultDay - 7)...resultDay {
+            let tryJD = ref.refJD + Double(tryDay)
+            for hOffset in nightHourOffsets {
+                let alt = equatorialToAltAz(ra: targetRA, dec: targetDec,
+                                            jd: tryJD + hOffset / 24.0,
+                                            lat: ref.latitude, lon: ref.longitude).alt
+                if alt >= minAlt {
+                    resultDay = tryDay
+                    let resultDate = ref.refMidnight.addingTimeInterval(Double(resultDay) * 86400)
+                    return ("Up \(ref.fmt.string(from: resultDate))", resultDay)
+                }
+            }
+        }
+
         let resultDate = ref.refMidnight.addingTimeInterval(Double(resultDay) * 86400)
         return ("Up \(ref.fmt.string(from: resultDate))", resultDay)
+    }
+
+    /// Find the earliest nighttime hour when target clears minAlt, returning a time string like "11 PM" or "3 AM".
+    private static func findRiseTime(
+        targetRA: Double, targetDec: Double,
+        jdMidnight: Double, ref: VisibilityRef, minAlt: Double,
+        hourOffsets: [Double]
+    ) -> String? {
+        // Map hour offsets to clock labels (offset from midnight)
+        // -5=7PM, -4=8PM, -3=9PM, -2=10PM, -1=11PM, 0=12AM, 1=1AM, 2=2AM, 3=3AM, 4=4AM, 5=5AM
+        for hOffset in hourOffsets {
+            let alt = equatorialToAltAz(ra: targetRA, dec: targetDec,
+                                        jd: jdMidnight + hOffset / 24.0,
+                                        lat: ref.latitude, lon: ref.longitude).alt
+            if alt >= minAlt {
+                let hour = Int((hOffset + 24).truncatingRemainder(dividingBy: 24))
+                let clockHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour)
+                let ampm = hour < 12 ? "AM" : "PM"
+                // Adjust for our offset convention: negative = evening
+                if hOffset < 0 {
+                    let eveningHour = 24 + Int(hOffset) // e.g., -5 → 19 (7 PM)
+                    let dispHour = eveningHour > 12 ? eveningHour - 12 : eveningHour
+                    return "\(dispHour) PM"
+                } else if hOffset == 0 {
+                    return "12 AM"
+                } else {
+                    let morningHour = Int(hOffset)
+                    return "\(morningHour) AM"
+                }
+            }
+        }
+        return nil
     }
 
     /// Convenience wrapper for single-target calls (used by computeVisibilityInfo fallback).
