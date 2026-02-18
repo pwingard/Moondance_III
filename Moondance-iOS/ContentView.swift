@@ -211,7 +211,7 @@ struct ContentView: View {
                                 }
                             }
                         }
-                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(height: formHeight)
 
                         if let result = calculationResult {
                             VStack(alignment: .leading, spacing: 12) {
@@ -514,6 +514,18 @@ struct ContentView: View {
         } header: {
             Text("Targets")
         }
+    }
+
+    /// Height for the target section Form. Each row is ~44pt; add generous padding so nothing clips.
+    private var formHeight: CGFloat {
+        var height: CGFloat = 44       // "Targets" section header
+        height += CGFloat(selectedTargets.count) * 44  // selected target rows
+        height += 44                   // Add Target button
+        height += 44                   // Suggest button
+        if !favoriteTargetIds.isEmpty { height += 44 }  // Favorites row
+        if isCalculating { height += 88 }               // spinner section + header
+        height += 32                   // section padding top + bottom
+        return height
     }
 
     private var canSuggest: Bool {
