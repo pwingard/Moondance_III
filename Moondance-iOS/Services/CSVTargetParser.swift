@@ -4,49 +4,71 @@ struct CSVTargetParser {
 
     struct ParseResult {
         let imported: [Target]
-        let skippedCount: Int
+        let skippedRows: [(row: Int, reason: String)]
+        var skippedCount: Int { skippedRows.count }
     }
 
     /// Parse CSV data into Target objects with type="Custom".
     /// Expected columns: Name, RA (degrees), Dec (degrees) [, Magnitude [, Size]]
     static func parse(_ data: Data) -> ParseResult {
         guard let text = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1) else {
-            return ParseResult(imported: [], skippedCount: 0)
+            return ParseResult(imported: [], skippedRows: [])
         }
 
-        var lines = text.components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
+        // Normalize all line endings to \n before splitting
+        let normalized = text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+
+        var lines = normalized.components(separatedBy: "\n")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
-        guard !lines.isEmpty else { return ParseResult(imported: [], skippedCount: 0) }
+        guard !lines.isEmpty else { return ParseResult(imported: [], skippedRows: []) }
 
         // Skip header row if RA column is non-numeric
         let firstFields = splitCSVLine(lines[0])
-        if firstFields.count >= 2, Double(firstFields[1].trimmingCharacters(in: .whitespaces)) == nil {
+        if firstFields.count >= 2, Double(firstFields[1].trimmingCharacters(in: .whitespacesAndNewlines)) == nil {
             lines.removeFirst()
         }
 
         var imported: [Target] = []
-        var skipped = 0
+        var skippedRows: [(row: Int, reason: String)] = []
 
-        for line in lines {
+        for (index, line) in lines.enumerated() {
+            let rowNum = index + 1
             let fields = splitCSVLine(line)
-            guard fields.count >= 3 else { skipped += 1; continue }
+            guard fields.count >= 3 else {
+                skippedRows.append((rowNum, "only \(fields.count) column(s)"))
+                continue
+            }
 
-            let rawName = fields[0].trimmingCharacters(in: .whitespaces)
-            guard let ra  = Double(fields[1].trimmingCharacters(in: .whitespaces)),
-                  let dec = Double(fields[2].trimmingCharacters(in: .whitespaces)),
-                  (0.0...360.0).contains(ra),
-                  (-90.0...90.0).contains(dec) else {
-                skipped += 1
+            let rawName = fields[0].trimmingCharacters(in: .whitespacesAndNewlines)
+            let raStr = fields[1].trimmingCharacters(in: .whitespacesAndNewlines)
+            let decStr = fields[2].trimmingCharacters(in: .whitespacesAndNewlines)
+
+            guard let ra = Double(raStr) else {
+                skippedRows.append((rowNum, "invalid RA '\(raStr)'"))
+                continue
+            }
+            guard let dec = Double(decStr) else {
+                skippedRows.append((rowNum, "invalid Dec '\(decStr)'"))
+                continue
+            }
+            guard (0.0...360.0).contains(ra) else {
+                skippedRows.append((rowNum, "RA \(ra) out of range 0–360"))
+                continue
+            }
+            guard (-90.0...90.0).contains(dec) else {
+                skippedRows.append((rowNum, "Dec \(dec) out of range –90–90"))
                 continue
             }
 
             let name = rawName.isEmpty
                 ? "Custom (\(String(format: "%.4f", ra))°, \(String(format: "%.4f", dec))°)"
                 : rawName
-            let magnitude: Double? = fields.count >= 4 ? Double(fields[3].trimmingCharacters(in: .whitespaces)) : nil
-            let size = fields.count >= 5 ? fields[4].trimmingCharacters(in: .whitespaces) : "—"
+            let magnitude: Double? = fields.count >= 4 ? Double(fields[3].trimmingCharacters(in: .whitespacesAndNewlines)) : nil
+            let size = fields.count >= 5 ? fields[4].trimmingCharacters(in: .whitespacesAndNewlines) : "—"
 
             imported.append(Target(
                 id: "custom_\(UUID().uuidString.prefix(8))",
@@ -60,7 +82,7 @@ struct CSVTargetParser {
             ))
         }
 
-        return ParseResult(imported: imported, skippedCount: skipped)
+        return ParseResult(imported: imported, skippedRows: skippedRows)
     }
 
     /// Generate CSV string from targets. Matches import format for round-trip.

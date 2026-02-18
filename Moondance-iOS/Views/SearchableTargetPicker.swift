@@ -1,6 +1,11 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+private struct ExportFile: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
 struct SearchableTargetPicker: View {
     @Binding var selectedTargets: [Target]
     @Binding var isPresented: Bool
@@ -23,8 +28,7 @@ struct SearchableTargetPicker: View {
     @State private var customName = ""
     @State private var showCoordinateEntry = false
     @State private var showImportPicker = false
-    @State private var showExportSheet = false
-    @State private var exportItems: [Any] = []
+    @State private var exportFile: ExportFile?
     @State private var importResultMessage: String?
     @State private var showImportResult = false
     private let dataManager = DataManager.shared
@@ -217,6 +221,17 @@ struct SearchableTargetPicker: View {
                             }
                         }
                         .disabled(selectedTargets.count >= maxTargets && !selectedTargets.contains(where: { $0.id == target.id }))
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            if target.type == "Custom" {
+                                Button(role: .destructive) {
+                                    selectedTargets.removeAll { $0.id == target.id }
+                                    favoriteTargetIds.remove(target.id)
+                                    customStore.remove(target)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -319,8 +334,8 @@ struct SearchableTargetPicker: View {
         .sheet(item: $wikiTarget) { target in
             WikipediaImageView(target: target)
         }
-        .sheet(isPresented: $showExportSheet) {
-            ShareSheet(items: exportItems)
+        .sheet(item: $exportFile) { file in
+            ShareSheet(items: [file.url])
         }
         .fileImporter(
             isPresented: $showImportPicker,
@@ -396,7 +411,10 @@ struct SearchableTargetPicker: View {
         if parseResult.skippedCount == 0 {
             importResultMessage = "Imported \(parseResult.imported.count) targets."
         } else {
-            importResultMessage = "Imported \(parseResult.imported.count) targets. \(parseResult.skippedCount) rows skipped (invalid RA/Dec)."
+            let details = parseResult.skippedRows
+                .map { "Row \($0.row): \($0.reason)" }
+                .joined(separator: "\n")
+            importResultMessage = "Imported \(parseResult.imported.count) targets. \(parseResult.skippedCount) row(s) skipped:\n\(details)"
         }
         showImportResult = true
         cacheReady = false
@@ -408,8 +426,7 @@ struct SearchableTargetPicker: View {
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("moondance_custom_targets.csv")
         try? csv.write(to: tempURL, atomically: true, encoding: .utf8)
-        exportItems = [tempURL]
-        showExportSheet = true
+        exportFile = ExportFile(url: tempURL)
     }
 
     private func requestObject() {
