@@ -138,11 +138,7 @@ struct SearchableTargetPicker: View {
                                     Text(target.name)
                                         .foregroundColor(.primary)
                                     HStack(spacing: 4) {
-                                        if let mag = target.magnitude {
-                                            Text("Mag \(mag, specifier: "%.1f") · \(target.size)")
-                                        } else {
-                                            Text(target.size)
-                                        }
+                                        Text("\(target.brightnessLabel) · \(target.size)")
                                         if let vis = visibilityInfo(for: target) {
                                             Text("· \(vis.label)")
                                                 .foregroundColor(vis.daysAway == -1 ? .red : vis.color)
@@ -299,6 +295,7 @@ struct SearchableTargetPicker: View {
             ra: ra,
             dec: dec,
             magnitude: nil,
+            surfaceBrightness: nil,
             size: "—"
         )
         selectedTargets.append(target)

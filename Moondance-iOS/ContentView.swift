@@ -427,14 +427,9 @@ struct ContentView: View {
                         .frame(width: 10, height: 10)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(target.name)
-                        HStack(spacing: 4) {
-                            if let mag = target.magnitude {
-                                Text("Mag \(mag, specifier: "%.1f")")
-                            }
-                            Text(target.size)
-                        }
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                        Text("\(target.brightnessLabel) · \(target.size)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
                     }
                     Spacer()
                     Button {
