@@ -34,11 +34,11 @@ struct Target: Codable, Identifiable, Hashable {
         self.size = size
     }
 
-    /// Display string for brightness — "Mag X.X", "SB X.X", or "—"
+    /// Display string for brightness — "Mag X.X", "SB X.X", or "Mag —"
     var brightnessLabel: String {
         if let mag = magnitude { return "Mag \(String(format: "%.1f", mag))" }
         if let sb = surfaceBrightness { return "SB \(String(format: "%.1f", sb))" }
-        return "—"
+        return "Mag —"
     }
 }
 

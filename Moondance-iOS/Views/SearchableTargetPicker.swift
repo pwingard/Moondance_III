@@ -298,11 +298,9 @@ struct SearchableTargetPicker: View {
                 if !savedEnabledTypes.isEmpty,
                    let data = savedEnabledTypes.data(using: .utf8),
                    let saved = try? JSONDecoder().decode(Set<String>.self, from: data) {
-                    // Keep known types; auto-enable any new types not previously seen
+                    // Restore exactly what the user had selected
                     let restored = saved.intersection(Set(allTypes))
-                    let newTypes = Set(allTypes).subtracting(saved)
-                    enabledTypes = restored.union(newTypes)
-                    if enabledTypes.isEmpty { enabledTypes = Set(allTypes) }
+                    enabledTypes = restored.isEmpty ? Set(allTypes) : restored
                 } else {
                     enabledTypes = Set(allTypes)
                 }
@@ -394,6 +392,7 @@ struct SearchableTargetPicker: View {
         }
         let parseResult = CSVTargetParser.parse(data)
         customStore.addAll(parseResult.imported)
+        if !parseResult.imported.isEmpty { enabledTypes.insert("Custom") }
         if parseResult.skippedCount == 0 {
             importResultMessage = "Imported \(parseResult.imported.count) targets."
         } else {

@@ -168,11 +168,18 @@ struct SuggestionEngine: Sendable {
             ))
         }
 
-        // Sort: available-now first, then gap coverage descending, then rating
+        // Boost candidates whose type matches selected targets
+        let selectedTypes = Set(selectedTargets.map { $0.type })
+        func typeBoost(_ s: TargetSuggestion) -> Bool { selectedTypes.contains(s.target.type) }
+
+        // Sort: available-now first, type match, then gap coverage descending, then rating
         suggestions.sort { a, b in
             let aFuture = a.availableFrom != nil
             let bFuture = b.availableFrom != nil
             if aFuture != bFuture { return !aFuture }
+            let aMatch = typeBoost(a)
+            let bMatch = typeBoost(b)
+            if aMatch != bMatch { return aMatch }
             if abs(a.gapCoverageHours - b.gapCoverageHours) > 0.5 {
                 return a.gapCoverageHours > b.gapCoverageHours
             }
