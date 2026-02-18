@@ -13,9 +13,14 @@ struct SearchableTargetPicker: View {
     @State private var searchText = ""
     @State private var wikiTarget: Target?
     @State private var enabledTypes: Set<String> = []
-    @State private var sortByAvailability = false
+    @AppStorage("sortByAvailability") private var sortByAvailability = false
+    @AppStorage("filterEnabledTypes") private var savedEnabledTypes: String = ""
     @State private var visibilityCache: [String: (label: String, color: Color, daysAway: Int)] = [:]
     @State private var cacheReady = false
+    @State private var customRA = ""
+    @State private var customDec = ""
+    @State private var customName = ""
+    @State private var showCoordinateEntry = false
     private let dataManager = DataManager.shared
 
     private var allTypes: [String] {
@@ -81,30 +86,28 @@ struct SearchableTargetPicker: View {
             }
 
             Section {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(allTypes, id: \.self) { type in
-                            Button {
-                                if enabledTypes.contains(type) {
-                                    enabledTypes.remove(type)
-                                } else {
-                                    enabledTypes.insert(type)
-                                }
-                            } label: {
-                                Text(type)
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 6)
-                                    .background(enabledTypes.contains(type) ? Color.accentColor : Color.secondary.opacity(0.15))
-                                    .foregroundColor(enabledTypes.contains(type) ? .white : .primary)
-                                    .cornerRadius(14)
+                FlowLayout(spacing: 8) {
+                    ForEach(allTypes, id: \.self) { type in
+                        Button {
+                            if enabledTypes.contains(type) {
+                                enabledTypes.remove(type)
+                            } else {
+                                enabledTypes.insert(type)
                             }
-                            .buttonStyle(.plain)
+                        } label: {
+                            Text(type)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(enabledTypes.contains(type) ? Color.accentColor : Color.secondary.opacity(0.15))
+                                .foregroundColor(enabledTypes.contains(type) ? .white : .primary)
+                                .cornerRadius(14)
                         }
+                        .buttonStyle(.plain)
                     }
-                    .padding(.vertical, 2)
                 }
+                .padding(.vertical, 2)
             } header: {
                 Text("Filter by Type")
             }
@@ -147,10 +150,16 @@ struct SearchableTargetPicker: View {
                                     }
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                    if let info = altitudeInfo(for: target), info.maxAlt < info.minAlt {
-                                        Text("Max \(info.maxAlt, specifier: "%.0f")° due \(info.direction) · below \(info.minAlt, specifier: "%.0f")° minimum")
-                                            .font(.caption2)
-                                            .foregroundColor(.orange)
+                                    if let info = altitudeInfo(for: target) {
+                                        if info.maxAlt < info.minAlt {
+                                            Text("Max \(info.maxAlt, specifier: "%.0f")° due \(info.direction) · below \(info.minAlt, specifier: "%.0f")° minimum")
+                                                .font(.caption2)
+                                                .foregroundColor(.red)
+                                        } else if info.maxAlt < info.minAlt + 5 {
+                                            Text("Max \(info.maxAlt, specifier: "%.0f")° due \(info.direction) · barely clears \(info.minAlt, specifier: "%.0f")° minimum")
+                                                .font(.caption2)
+                                                .foregroundColor(.orange)
+                                        }
                                     }
                                 }
                                 Spacer()
@@ -194,6 +203,27 @@ struct SearchableTargetPicker: View {
             }
 
             Section {
+                DisclosureGroup("Enter Coordinates", isExpanded: $showCoordinateEntry) {
+                    TextField("Name (optional)", text: $customName)
+                        .textInputAutocapitalization(.words)
+                    HStack {
+                        TextField("RA (degrees)", text: $customRA)
+                            .keyboardType(.decimalPad)
+                        TextField("Dec (degrees)", text: $customDec)
+                            .keyboardType(.numbersAndPunctuation)
+                    }
+                    Button {
+                        addCustomTarget()
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(.accentColor)
+                            Text("Add to Targets")
+                        }
+                    }
+                    .disabled(Double(customRA) == nil || Double(customDec) == nil || selectedTargets.count >= maxTargets)
+                }
+
                 Button {
                     requestObject()
                 } label: {
@@ -216,10 +246,25 @@ struct SearchableTargetPicker: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             if enabledTypes.isEmpty {
-                enabledTypes = Set(allTypes)
+                // Restore saved filter selections, or default to all
+                if !savedEnabledTypes.isEmpty,
+                   let data = savedEnabledTypes.data(using: .utf8),
+                   let saved = try? JSONDecoder().decode(Set<String>.self, from: data) {
+                    // Only keep types that still exist in the data
+                    enabledTypes = saved.intersection(Set(allTypes))
+                    if enabledTypes.isEmpty { enabledTypes = Set(allTypes) }
+                } else {
+                    enabledTypes = Set(allTypes)
+                }
             }
             if !cacheReady {
                 buildVisibilityCache()
+            }
+        }
+        .onChange(of: enabledTypes) { _, newTypes in
+            // Persist filter selections
+            if let data = try? JSONEncoder().encode(newTypes) {
+                savedEnabledTypes = String(data: data, encoding: .utf8) ?? ""
             }
         }
         .searchable(text: $searchText, prompt: "Search objects...")
@@ -241,6 +286,26 @@ struct SearchableTargetPicker: View {
         } else if selectedTargets.count < maxTargets {
             selectedTargets.append(target)
         }
+    }
+
+    private func addCustomTarget() {
+        guard let ra = Double(customRA), let dec = Double(customDec),
+              selectedTargets.count < maxTargets else { return }
+        let name = customName.isEmpty ? "Custom (\(customRA)°, \(customDec)°)" : customName
+        let target = Target(
+            id: "custom_\(UUID().uuidString.prefix(8))",
+            name: name,
+            type: "Custom",
+            ra: ra,
+            dec: dec,
+            magnitude: nil,
+            size: "—"
+        )
+        selectedTargets.append(target)
+        customRA = ""
+        customDec = ""
+        customName = ""
+        showCoordinateEntry = false
     }
 
     private func requestObject() {

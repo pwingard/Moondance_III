@@ -493,6 +493,7 @@ nonisolated struct AstronomyEngine: Sendable {
     struct VisibilityRef {
         let refMidnight: Date    // next local midnight
         let refJD: Double        // Julian Date at refMidnight
+        let nowJD: Double        // Julian Date right now
         let refLST: Double       // Local Sidereal Time at refMidnight (degrees)
         let latRad: Double       // latitude in radians
         let latitude: Double
@@ -507,6 +508,7 @@ nonisolated struct AstronomyEngine: Sendable {
             let todayMidnight = cal.startOfDay(for: today)
             self.refMidnight = todayMidnight.addingTimeInterval(86400)
             self.refJD = AstronomyEngine.julianDate(from: refMidnight)
+            self.nowJD = AstronomyEngine.julianDate(from: today)
             self.refLST = (AstronomyEngine.greenwichMeanSiderealTime(jd: refJD) + longitude).mod(360)
             self.latRad = latitude.degreesToRadians
             self.latitude = latitude
@@ -553,31 +555,44 @@ nonisolated struct AstronomyEngine: Sendable {
         // Nighttime check offsets from midnight (hours). Covers 7 PM to 5 AM.
         let nightHourOffsets: [Double] = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
 
-        // Days the target is above minAlt centered on transit date.
-        // Use 75° margin (~5h before/after midnight) to catch pre-dawn/early-evening targets.
-        let visibleHalfWindowDays = (haLimitDeg + 75.0) / 0.9856
+        // Current hour offset relative to tonight's midnight (negative = still this evening)
+        let nowHourOffset = (ref.nowJD - ref.refJD) * 24.0  // e.g. -4.2 at 7:48 PM
 
+        // 1. Check if target is above minAlt RIGHT NOW
+        let altNow = equatorialToAltAz(ra: targetRA, dec: targetDec,
+                                        jd: ref.nowJD,
+                                        lat: ref.latitude, lon: ref.longitude).alt
+        if altNow >= minAlt {
+            return ("Up now", 0)
+        }
+
+        // 2. Scan forward from current hour through end of night for rise time
+        let futureOffsets = nightHourOffsets.filter { $0 > nowHourOffset }
+        if let riseTime = findRiseTime(targetRA: targetRA, targetDec: targetDec,
+                                        jdMidnight: ref.refJD, ref: ref, minAlt: minAlt,
+                                        hourOffsets: futureOffsets) {
+            return ("Up at \(riseTime)", 0)
+        }
+
+        // Not up tonight — estimate when it will be using geometric approach.
         // Midnight transit: when HA=0 at midnight → LST = RA
         let raOffset = (targetRA - ref.refLST).mod(360)
         let daysToTransit = Int(round(raOffset / 0.9856))
 
+        // Days the target is above minAlt centered on transit date.
+        // Use 75° margin (~5h before/after midnight) to catch pre-dawn/early-evening targets.
+        let visibleHalfWindowDays = (haLimitDeg + 75.0) / 0.9856
+
         // First visible ≈ transit date minus half the visible window
-        let firstVisibleDay = max(0, daysToTransit - Int(visibleHalfWindowDays))
+        // If raOffset > 180, target recently transited — adjust daysToTransit
+        let adjustedTransit = raOffset > 180 ? daysToTransit : daysToTransit
+        let firstVisibleDay = max(1, adjustedTransit - Int(visibleHalfWindowDays))
 
-        // Check if it's visible tonight (scan 7 PM to 5 AM)
-        if firstVisibleDay <= 0 {
-            if let riseTime = findRiseTime(targetRA: targetRA, targetDec: targetDec,
-                                            jdMidnight: ref.refJD, ref: ref, minAlt: minAlt,
-                                            hourOffsets: nightHourOffsets) {
-                return ("Tonight \(riseTime)", 0)
-            }
-        }
-
-        // For future dates, verify and refine the estimate by checking actual nighttime altitudes
-        var resultDay = max(1, firstVisibleDay)
+        // Verify and refine by checking actual nighttime altitudes
+        var resultDay = firstVisibleDay
 
         // Check the estimated date and a few days before to catch earlier visibility
-        for tryDay in max(1, resultDay - 7)...resultDay {
+        for tryDay in max(1, resultDay - 7)...max(resultDay, 1) {
             let tryJD = ref.refJD + Double(tryDay)
             for hOffset in nightHourOffsets {
                 let alt = equatorialToAltAz(ra: targetRA, dec: targetDec,

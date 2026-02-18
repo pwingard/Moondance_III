@@ -209,15 +209,25 @@ struct ContentView: View {
                                 }
                             }
                         }
-                        .frame(height: isCalculating ? 340 : 280)
+                        .frame(height: formHeight)
 
                         if let result = calculationResult {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Nightly Visibility — rotate for fullscreen")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .textCase(.uppercase)
-                                    .padding(.horizontal)
+                                HStack {
+                                    Text("Nightly Visibility — rotate for fullscreen")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .textCase(.uppercase)
+                                    Spacer()
+                                    Button {
+                                        calculationResult = nil
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.secondary)
+                                            .font(.title3)
+                                    }
+                                }
+                                .padding(.horizontal)
 
                                 NightBarChartView(
                                     result: result,
@@ -497,6 +507,19 @@ struct ContentView: View {
         } header: {
             Text("Targets")
         }
+    }
+
+    /// Dynamic height for the target section Form based on content.
+    private var formHeight: CGFloat {
+        // Base: header + Add Target + Suggest buttons + padding
+        var height: CGFloat = 180
+        // Each selected target row
+        height += CGFloat(selectedTargets.count) * 52
+        // Favorites row if visible
+        if !favoriteTargetIds.isEmpty { height += 44 }
+        // Calculating spinner
+        if isCalculating { height += 50 }
+        return height
     }
 
     private var canSuggest: Bool {
