@@ -139,7 +139,8 @@ struct ContentView: View {
                 result: result,
                 title: chartTitle,
                 chartHeight: geo.size.height - verticalChrome - safeTop - safeBottom,
-                moonTierConfig: moonTierConfig
+                moonTierConfig: moonTierConfig,
+                targets: selectedTargets
             )
             .padding(.leading, safeLeft + 40)
             .padding(.trailing, max(safeRight, 16))
@@ -233,7 +234,8 @@ struct ContentView: View {
                                 NightBarChartView(
                                     result: result,
                                     title: chartTitle,
-                                    moonTierConfig: moonTierConfig
+                                    moonTierConfig: moonTierConfig,
+                                    targets: selectedTargets
                                 )
                                 .padding(.horizontal)
                             }
@@ -741,7 +743,8 @@ struct ContentView: View {
             content: NightBarChartView(
                 result: result,
                 title: chartTitle,
-                moonTierConfig: moonTierConfig
+                moonTierConfig: moonTierConfig,
+                targets: selectedTargets
             ).frame(width: 800, height: 400)
         )
         renderer.scale = 2.0

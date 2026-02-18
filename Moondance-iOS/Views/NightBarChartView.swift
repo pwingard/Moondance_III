@@ -6,11 +6,13 @@ struct NightBarChartView: View {
     var title: String = "Nightly Target Visibility"
     var chartHeight: CGFloat = 320
     var moonTierConfig: MoonTierConfig = .defaults
+    var targets: [Target] = []
 
     @State private var selectedDay: DayResult?
     @State private var selectedTarget: TargetNightResult?
     @State private var showMoonDetail = false
     @State private var showHelp = false
+    @State private var wikiTarget: Target?
 
     private let barSpacing: CGFloat = 4
 
@@ -157,6 +159,9 @@ struct NightBarChartView: View {
         }
         .sheet(isPresented: $showHelp) {
             HelpView()
+        }
+        .sheet(item: $wikiTarget) { target in
+            WikipediaImageView(target: target)
         }
     }
 
@@ -348,22 +353,33 @@ struct NightBarChartView: View {
                     avgSeparationMoonUp: tr.avgSeparationMoonUp
                 )
                 let icon = simpleRatingIcon(rating)
-                Button {
-                    selectedTarget = tr
-                } label: {
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(targetColors[tr.colorIndex])
-                            .frame(width: 8, height: 8)
-                        Text(tr.targetName)
-                            .foregroundStyle(targetColors[tr.colorIndex])
-                        Spacer()
-                        Image(systemName: icon.icon)
-                            .font(.system(size: 10))
-                            .foregroundStyle(icon.color)
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 8))
-                            .foregroundStyle(.white.opacity(0.3))
+                HStack(spacing: 4) {
+                    Button {
+                        selectedTarget = tr
+                    } label: {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(targetColors[tr.colorIndex])
+                                .frame(width: 8, height: 8)
+                            Text(tr.targetName)
+                                .foregroundStyle(targetColors[tr.colorIndex])
+                            Spacer()
+                            Image(systemName: icon.icon)
+                                .font(.system(size: 10))
+                                .foregroundStyle(icon.color)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 8))
+                                .foregroundStyle(.white.opacity(0.3))
+                        }
+                    }
+                    if let t = targets.first(where: { $0.name == tr.targetName }) {
+                        Button {
+                            wikiTarget = t
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.white.opacity(0.5))
+                        }
                     }
                 }
             }
