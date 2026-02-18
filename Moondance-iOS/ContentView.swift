@@ -468,6 +468,23 @@ struct ContentView: View {
             }
             .disabled(selectedTargets.count >= maxTargets)
 
+            if !favoriteTargetIds.isEmpty {
+                Button {
+                    showFavorites = true
+                } label: {
+                    HStack {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                        Text("Favorites")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("\(favoriteTargetIds.count)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+
             Button {
                 if canSuggest {
                     runSuggestions()
@@ -494,37 +511,20 @@ struct ContentView: View {
             } message: {
                 Text("Suggest finds complementary targets that pair well with your selection — targets with similar visibility windows but spaced far enough from the moon. Add at least one target first, then tap Suggest.")
             }
-
-            if !favoriteTargetIds.isEmpty {
-                Button {
-                    showFavorites = true
-                } label: {
-                    HStack {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.yellow)
-                        Text("Favorites")
-                            .foregroundColor(.primary)
-                        Spacer()
-                        Text("\(favoriteTargetIds.count)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
         } header: {
             Text("Targets")
         }
     }
 
-    /// Height for the target section Form. Each row is ~44pt; add generous padding so nothing clips.
+    /// Height for the target section Form.
     private var formHeight: CGFloat {
-        var height: CGFloat = 44       // "Targets" section header
-        height += CGFloat(selectedTargets.count) * 44  // selected target rows
+        var height: CGFloat = 36       // "Targets" section header
+        height += CGFloat(selectedTargets.count) * 56  // 2-line target rows
         height += 44                   // Add Target button
+        if !favoriteTargetIds.isEmpty { height += 44 } // Favorites row
         height += 44                   // Suggest button
-        if !favoriteTargetIds.isEmpty { height += 44 }  // Favorites row
-        if isCalculating { height += 88 }               // spinner section + header
-        height += 32                   // section padding top + bottom
+        if isCalculating { height += 80 }              // spinner section
+        height += 48                   // section insets + safety margin
         return height
     }
 
