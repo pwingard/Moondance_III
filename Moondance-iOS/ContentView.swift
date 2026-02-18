@@ -36,6 +36,7 @@ struct ContentView: View {
     @State private var suggestions: [TargetSuggestion] = []
     @State private var isLoadingSuggestions = false
     @State private var showHelp = false
+    @State private var showSuggestAlert = false
     @State private var showFavorites = false
     @State private var favoriteTargetIds: Set<String> = []
     @State private var wikiTarget: Target?
@@ -471,7 +472,11 @@ struct ContentView: View {
             .disabled(selectedTargets.count >= maxTargets)
 
             Button {
-                runSuggestions()
+                if canSuggest {
+                    runSuggestions()
+                } else {
+                    showSuggestAlert = true
+                }
             } label: {
                 HStack {
                     if isLoadingSuggestions {
@@ -479,14 +484,19 @@ struct ContentView: View {
                             .controlSize(.small)
                     } else {
                         Image(systemName: "lightbulb.fill")
-                            .foregroundColor(.yellow)
+                            .foregroundColor(canSuggest ? .yellow : .secondary)
                     }
                     Text("Suggest")
                         .foregroundColor(canSuggest ? .primary : .secondary)
                     Spacer()
                 }
             }
-            .disabled(!canSuggest || isLoadingSuggestions)
+            .disabled(isLoadingSuggestions)
+            .alert("Pick a Target First", isPresented: $showSuggestAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Suggest finds complementary targets that pair well with your selection — targets with similar visibility windows but spaced far enough from the moon. Add at least one target first, then tap Suggest.")
+            }
 
             if !favoriteTargetIds.isEmpty {
                 Button {

@@ -5597,6 +5597,15 @@
       "dec": -31.069,
       "magnitude": 10.4,
       "size": "5' × 3'"
+    },
+    {
+      "id": "simeis147",
+      "name": "Simeis 147 - Spaghetti Nebula",
+      "type": "Nebula",
+      "ra": 85.252,
+      "dec": 27.968,
+      "magnitude": null,
+      "size": "3°"
     }
   ]
 }
