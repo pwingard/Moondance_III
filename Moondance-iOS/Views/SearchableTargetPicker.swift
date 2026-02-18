@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SearchableTargetPicker: View {
     @Binding var selectedTargets: [Target]
@@ -21,10 +22,32 @@ struct SearchableTargetPicker: View {
     @State private var customDec = ""
     @State private var customName = ""
     @State private var showCoordinateEntry = false
+    @State private var showImportPicker = false
+    @State private var showExportSheet = false
+    @State private var exportItems: [Any] = []
+    @State private var importResultMessage: String?
+    @State private var showImportResult = false
     private let dataManager = DataManager.shared
+    private let customStore = CustomTargetStore.shared
 
     private var allTypes: [String] {
-        dataManager.targetsByType.keys.sorted()
+        var types = dataManager.targetsByType.keys.sorted()
+        if !customStore.targets.isEmpty && !types.contains("Custom") {
+            types.append("Custom")
+        }
+        return types
+    }
+
+    private var combinedTargets: [Target] {
+        dataManager.targets + customStore.targets
+    }
+
+    private var combinedTargetsByType: [String: [Target]] {
+        var result = dataManager.targetsByType
+        if !customStore.targets.isEmpty {
+            result["Custom"] = customStore.targets
+        }
+        return result
     }
 
     private let targetColors: [Color] = [
@@ -221,6 +244,35 @@ struct SearchableTargetPicker: View {
                 }
 
                 Button {
+                    showImportPicker = true
+                } label: {
+                    HStack {
+                        Image(systemName: "square.and.arrow.down")
+                            .foregroundColor(.accentColor)
+                        Text("Import Targets from CSV")
+                            .foregroundColor(.primary)
+                        Spacer()
+                    }
+                }
+
+                if !customStore.targets.isEmpty {
+                    Button {
+                        exportCustomTargets()
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.accentColor)
+                            Text("Export My Custom Targets")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Text("\(customStore.targets.count) saved")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+
+                Button {
                     requestObject()
                 } label: {
                     HStack {
@@ -246,8 +298,10 @@ struct SearchableTargetPicker: View {
                 if !savedEnabledTypes.isEmpty,
                    let data = savedEnabledTypes.data(using: .utf8),
                    let saved = try? JSONDecoder().decode(Set<String>.self, from: data) {
-                    // Only keep types that still exist in the data
-                    enabledTypes = saved.intersection(Set(allTypes))
+                    // Keep known types; auto-enable any new types not previously seen
+                    let restored = saved.intersection(Set(allTypes))
+                    let newTypes = Set(allTypes).subtracting(saved)
+                    enabledTypes = restored.union(newTypes)
                     if enabledTypes.isEmpty { enabledTypes = Set(allTypes) }
                 } else {
                     enabledTypes = Set(allTypes)
@@ -266,6 +320,21 @@ struct SearchableTargetPicker: View {
         .searchable(text: $searchText, prompt: "Search objects...")
         .sheet(item: $wikiTarget) { target in
             WikipediaImageView(target: target)
+        }
+        .sheet(isPresented: $showExportSheet) {
+            ShareSheet(items: exportItems)
+        }
+        .fileImporter(
+            isPresented: $showImportPicker,
+            allowedContentTypes: [.commaSeparatedText],
+            allowsMultipleSelection: false
+        ) { result in
+            handleImport(result: result)
+        }
+        .alert("Import Complete", isPresented: $showImportResult) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(importResultMessage ?? "")
         }
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
@@ -298,11 +367,50 @@ struct SearchableTargetPicker: View {
             surfaceBrightness: nil,
             size: "—"
         )
+        customStore.add(target)
         selectedTargets.append(target)
         customRA = ""
         customDec = ""
         customName = ""
         showCoordinateEntry = false
+    }
+
+    private func handleImport(result: Result<[URL], Error>) {
+        guard case .success(let urls) = result, let url = urls.first else {
+            importResultMessage = "Could not open file."
+            showImportResult = true
+            return
+        }
+        guard url.startAccessingSecurityScopedResource() else {
+            importResultMessage = "Permission denied for that file."
+            showImportResult = true
+            return
+        }
+        defer { url.stopAccessingSecurityScopedResource() }
+        guard let data = try? Data(contentsOf: url) else {
+            importResultMessage = "Could not read file."
+            showImportResult = true
+            return
+        }
+        let parseResult = CSVTargetParser.parse(data)
+        customStore.addAll(parseResult.imported)
+        if parseResult.skippedCount == 0 {
+            importResultMessage = "Imported \(parseResult.imported.count) targets."
+        } else {
+            importResultMessage = "Imported \(parseResult.imported.count) targets. \(parseResult.skippedCount) rows skipped (invalid RA/Dec)."
+        }
+        showImportResult = true
+        cacheReady = false
+        buildVisibilityCache()
+    }
+
+    private func exportCustomTargets() {
+        let csv = CSVTargetParser.export(customStore.targets)
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("moondance_custom_targets.csv")
+        try? csv.write(to: tempURL, atomically: true, encoding: .utf8)
+        exportItems = [tempURL]
+        showExportSheet = true
     }
 
     private func requestObject() {
@@ -373,7 +481,7 @@ struct SearchableTargetPicker: View {
 
     private func buildVisibilityCache() {
         guard let lat = latitude, let lon = longitude else { return }
-        let targets = dataManager.targets.filter { !neverRises($0) }
+        let targets = combinedTargets.filter { !neverRises($0) }
 
         // Pre-compute shared reference values ONCE (Calendar, JD, LST, DateFormatter)
         let ref = AstronomyEngine.VisibilityRef(latitude: lat, longitude: lon, timezone: timezone)
@@ -406,7 +514,7 @@ struct SearchableTargetPicker: View {
     }
 
     private var filteredGroups: [(String, [Target])] {
-        let groups = dataManager.targetsByType.sorted { $0.key < $1.key }
+        let groups = combinedTargetsByType.sorted { $0.key < $1.key }
 
         let lowercasedSearch = searchText.lowercased()
 

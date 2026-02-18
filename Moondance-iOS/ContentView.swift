@@ -682,8 +682,10 @@ struct ContentView: View {
 
         if let jsonData = savedTargetIds.data(using: .utf8),
            let ids = try? JSONDecoder().decode([String].self, from: jsonData) {
+            let cs = CustomTargetStore.shared
             selectedTargets = ids.compactMap { id in
                 dm.targets.first { $0.id == id }
+                    ?? cs.targets.first { $0.id == id }
             }
         }
         if selectedTargets.isEmpty {
@@ -802,16 +804,6 @@ struct ContentView: View {
 }
 
 // MARK: - Share Sheet
-
-struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
-}
 
 #Preview {
     ContentView()
