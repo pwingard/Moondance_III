@@ -22,7 +22,11 @@ struct SearchableTargetPicker: View {
     @AppStorage("sortByAvailability") private var sortByAvailability = false
     @AppStorage("filterEnabledTypes") private var savedEnabledTypes: String = ""
     @State private var visibilityCache: [String: (label: String, color: Color, daysAway: Int)] = [:]
+    @State private var moonFreeCache: [String: Double] = [:]
     @State private var cacheReady = false
+    @AppStorage("minMoonFreeHours") private var minMoonFreeHoursFilter: Int = 0
+    @AppStorage("duskDawnBuffer") private var duskDawnBuffer: Double = 1.0
+    @State private var moonFreeDate: Date = Date()
     @State private var customRA = ""
     @State private var customDec = ""
     @State private var customName = ""
@@ -151,6 +155,23 @@ struct SearchableTargetPicker: View {
                 } else {
                     Toggle("Sort by availability", isOn: $sortByAvailability)
                         .font(.subheadline)
+                    if latitude != nil {
+                        DatePicker("Moon-free night", selection: $moonFreeDate, displayedComponents: .date)
+                            .font(.subheadline)
+                        HStack {
+                            Text("Min moon-free")
+                                .font(.subheadline)
+                            Spacer()
+                            Picker("Moon-free", selection: $minMoonFreeHoursFilter) {
+                                Text("Any").tag(0)
+                                Text("1h+").tag(1)
+                                Text("2h+").tag(2)
+                                Text("3h+").tag(3)
+                            }
+                            .pickerStyle(.segmented)
+                            .fixedSize()
+                        }
+                    }
                 }
             }
 
@@ -329,6 +350,11 @@ struct SearchableTargetPicker: View {
             if let data = try? JSONEncoder().encode(newTypes) {
                 savedEnabledTypes = String(data: data, encoding: .utf8) ?? ""
             }
+        }
+        .onChange(of: moonFreeDate) { _, _ in
+            guard let lat = latitude, let lon = longitude, cacheReady else { return }
+            let targets = combinedTargets.filter { !neverRises($0) }
+            moonFreeCache = buildMoonFreeCache(targets: targets, lat: lat, lon: lon, date: moonFreeDate)
         }
         .searchable(text: $searchText, prompt: "Search objects...")
         .sheet(item: $wikiTarget) { target in
@@ -521,7 +547,61 @@ struct SearchableTargetPicker: View {
             cache[target.id] = (info.label, color, info.daysAway)
         }
         visibilityCache = cache
+
+        // Compute moon-free hours per target for the selected date
+        moonFreeCache = buildMoonFreeCache(targets: targets, lat: lat, lon: lon, date: moonFreeDate)
+
         cacheReady = true
+    }
+
+    private func buildMoonFreeCache(targets: [Target], lat: Double, lon: Double, date: Date) -> [String: Double] {
+        let tz = TimeZone(identifier: timezone) ?? .current
+        var cal = Calendar.current
+        cal.timeZone = tz
+
+        // Darkness window for the chosen date
+        var sunsetComps = cal.dateComponents(in: tz, from: date)
+        sunsetComps.hour = 18; sunsetComps.minute = 0; sunsetComps.second = 0
+        let sunsetApprox = cal.date(from: sunsetComps)!
+        let sunset = AstronomyEngine.findSunset(near: sunsetApprox, latitude: lat, longitude: lon)
+
+        var sunriseComps = cal.dateComponents(in: tz, from: date)
+        sunriseComps.hour = 6; sunriseComps.minute = 0; sunriseComps.second = 0
+        let sunriseNextDay = cal.date(byAdding: .day, value: 1, to: cal.date(from: sunriseComps)!)!
+        let sunrise = AstronomyEngine.findSunrise(near: sunriseNextDay, latitude: lat, longitude: lon)
+
+        let darknessStart = sunset.addingTimeInterval(duskDawnBuffer * 3600)
+        let darknessEnd = sunrise.addingTimeInterval(-duskDawnBuffer * 3600)
+        guard darknessEnd > darknessStart else { return [:] }
+
+        // Moon-free gaps: intervals when the moon is below the horizon
+        let moonVis = AstronomyEngine.findMoonVisibility(
+            latitude: lat, longitude: lon,
+            darknessStart: darknessStart, darknessEnd: darknessEnd
+        )
+        let moonFreeGaps: [(Date, Date)]
+        if let mv = moonVis {
+            moonFreeGaps = [(darknessStart, mv.riseTime), (mv.setTime, darknessEnd)]
+                .filter { $0.1 > $0.0 }
+        } else {
+            moonFreeGaps = [(darknessStart, darknessEnd)]
+        }
+
+        var result: [String: Double] = [:]
+        for target in targets {
+            let targetVis = AstronomyEngine.findTargetVisibility(
+                targetRA: target.ra, targetDec: target.dec,
+                latitude: lat, longitude: lon,
+                darknessStart: darknessStart, darknessEnd: darknessEnd,
+                minAltitudes: directionalAltitudes.values
+            )
+            if let tv = targetVis {
+                result[target.id] = SuggestionEngine.overlapHours(span: tv, gaps: moonFreeGaps)
+            } else {
+                result[target.id] = 0
+            }
+        }
+        return result
     }
 
     private var hiddenCount: Int {
@@ -531,21 +611,27 @@ struct SearchableTargetPicker: View {
 
     private var filteredGroups: [(String, [Target])] {
         let groups = combinedTargetsByType.sorted { $0.key < $1.key }
-
         let lowercasedSearch = searchText.lowercased()
+        let moonFreeMin = Double(minMoonFreeHoursFilter)
+
+        func passesMoonFreeFilter(_ target: Target) -> Bool {
+            guard moonFreeMin > 0, cacheReady else { return true }
+            return (moonFreeCache[target.id] ?? 0) >= moonFreeMin
+        }
+
+        func passesBaseFilters(_ target: Target) -> Bool {
+            if neverRises(target) { return false }
+            if !searchText.isEmpty {
+                guard target.name.lowercased().contains(lowercasedSearch) ||
+                      target.id.lowercased().contains(lowercasedSearch) else { return false }
+            }
+            return passesMoonFreeFilter(target)
+        }
 
         if sortByAvailability && cacheReady {
-            // Flatten all targets, filter, sort by daysAway, return as single group
             let allFiltered = groups.flatMap { (type, targets) -> [Target] in
                 if !enabledTypes.contains(type) { return [] }
-                return targets.filter { target in
-                    if neverRises(target) { return false }
-                    if !searchText.isEmpty {
-                        return target.name.lowercased().contains(lowercasedSearch) ||
-                               target.id.lowercased().contains(lowercasedSearch)
-                    }
-                    return true
-                }
+                return targets.filter { passesBaseFilters($0) }
             }
             let sorted = allFiltered.sorted { a, b in
                 let aDays = visibilityCache[a.id]?.daysAway ?? 999
@@ -559,15 +645,7 @@ struct SearchableTargetPicker: View {
 
         return groups.compactMap { (type, targets) in
             if !enabledTypes.contains(type) { return nil }
-
-            let filtered = targets.filter { target in
-                if neverRises(target) { return false }
-                if !searchText.isEmpty {
-                    return target.name.lowercased().contains(lowercasedSearch) ||
-                           target.id.lowercased().contains(lowercasedSearch)
-                }
-                return true
-            }
+            let filtered = targets.filter { passesBaseFilters($0) }
             return filtered.isEmpty ? nil : (type, filtered)
         }
     }

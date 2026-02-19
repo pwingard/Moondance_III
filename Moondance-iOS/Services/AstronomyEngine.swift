@@ -558,11 +558,16 @@ nonisolated struct AstronomyEngine: Sendable {
         // Current hour offset relative to tonight's midnight (negative = still this evening)
         let nowHourOffset = (ref.nowJD - ref.refJD) * 24.0  // e.g. -4.2 at 7:48 PM
 
-        // 1. Check if target is above minAlt RIGHT NOW
+        // 1. Check if target is above minAlt RIGHT NOW and it's actually dark
+        let sunEqNow = sunEquatorial(jd: ref.nowJD)
+        let sunAltNow = equatorialToAltAz(ra: sunEqNow.ra, dec: sunEqNow.dec,
+                                           jd: ref.nowJD,
+                                           lat: ref.latitude, lon: ref.longitude).alt
+        let isDark = sunAltNow < -6.0  // below civil twilight
         let altNow = equatorialToAltAz(ra: targetRA, dec: targetDec,
                                         jd: ref.nowJD,
                                         lat: ref.latitude, lon: ref.longitude).alt
-        if altNow >= minAlt {
+        if altNow >= minAlt && isDark {
             return ("Up now", 0)
         }
 
