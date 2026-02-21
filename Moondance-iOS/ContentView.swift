@@ -302,8 +302,11 @@ struct ContentView: View {
                     .disabled(!isFormValid || isCalculating)
                     .padding(.horizontal)
 
-                    HStack(spacing: 4) {
-                        Text("Moondance Studio 87")
+                    HStack(spacing: 8) {
+                        Text("Sidestep Studio")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text("·")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         Button {
@@ -314,7 +317,7 @@ struct ContentView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
-                    Text("Follow @see_theShow on X")
+                    Text("Follow @see_theShow · @SidestepStudio on X")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }

@@ -32,11 +32,11 @@ struct NightBarChartView: View {
     /// Width of the full column (background + glow) for one night
     private var columnWidth: CGFloat {
         switch targetCount {
-        case 0, 1: return 26
-        case 2: return 32
-        case 3, 4: return 38
-        case 5, 6: return 46
-        default: return 52
+        case 0, 1: return 32
+        case 2: return 38
+        case 3, 4: return 44
+        case 5, 6: return 52
+        default: return 58
         }
     }
 
@@ -246,6 +246,7 @@ struct NightBarChartView: View {
                         .lineStyle(StrokeStyle(lineWidth: 0.5, dash: [4, 4]))
                 }
             }
+
         }
         .chartYScale(domain: yDomain)
         .chartYAxis {
@@ -275,12 +276,60 @@ struct NightBarChartView: View {
         .chartLegend(.hidden)
         .chartOverlay { proxy in
             GeometryReader { geo in
-                Rectangle()
-                    .fill(.clear)
-                    .contentShape(Rectangle())
-                    .onTapGesture { location in
-                        selectDay(at: location, proxy: proxy, geo: geo)
+                ZStack {
+                    // Tap gesture
+                    Rectangle()
+                        .fill(.clear)
+                        .contentShape(Rectangle())
+                        .onTapGesture { location in
+                            selectDay(at: location, proxy: proxy, geo: geo)
+                        }
+
+                    // Moon rise/set tick marks: 5px inward from outer column wall,
+                    // only drawn when the event is hidden behind a target bar
+                    Canvas { context, _ in
+                        guard let anchor = proxy.plotFrame else { return }
+                        let plotOrigin = geo[anchor].origin
+                        let tickW: CGFloat = 5
+                        let tickH: CGFloat = 1
+
+                        for day in result.days {
+                            guard let night = day.nightWindow,
+                                  let moonVis = day.moonVisibility,
+                                  let xCenter = proxy.position(forX: day.dateLabel) else { continue }
+
+                            let halfCol = columnWidth / 2
+                            let leftEdge = plotOrigin.x + xCenter - halfCol
+
+                            // Moonrise tick — only when hidden behind a target bar
+                            if !moonVis.alreadyUpAtStart {
+                                let hiddenByTarget = day.targetResults.contains { tr in
+                                    guard let vis = tr.visibility else { return false }
+                                    return moonVis.riseTime > vis.riseTime && moonVis.riseTime < vis.setTime
+                                }
+                                if hiddenByTarget,
+                                   let riseYInPlot = proxy.position(forY: hoursFromCenter(moonVis.riseTime, night: night)) {
+                                    let y = plotOrigin.y + riseYInPlot - tickH / 2
+                                    context.fill(Path(CGRect(x: leftEdge, y: y, width: tickW, height: tickH)), with: .color(.white.opacity(0.4)))
+                                }
+                            }
+
+                            // Moonset tick — only when hidden behind a target bar
+                            if !moonVis.stillUpAtEnd {
+                                let hiddenByTarget = day.targetResults.contains { tr in
+                                    guard let vis = tr.visibility else { return false }
+                                    return moonVis.setTime > vis.riseTime && moonVis.setTime < vis.setTime
+                                }
+                                if hiddenByTarget,
+                                   let setYInPlot = proxy.position(forY: hoursFromCenter(moonVis.setTime, night: night)) {
+                                    let y = plotOrigin.y + setYInPlot - tickH / 2
+                                    context.fill(Path(CGRect(x: leftEdge, y: y, width: tickW, height: tickH)), with: .color(.white.opacity(0.4)))
+                                }
+                            }
+                        }
                     }
+                    .allowsHitTesting(false)
+                }
             }
         }
     }
