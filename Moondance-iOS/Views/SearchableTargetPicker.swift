@@ -181,8 +181,23 @@ struct SearchableTargetPicker: View {
                 } else {
                     Toggle("Sort by availability", isOn: $sortByAvailability)
                         .font(.subheadline)
-                    if latitude != nil {
-                        DatePicker("Moon-free night", selection: $moonFreeDate, displayedComponents: .date)
+                }
+            } header: {
+                Text("Sort")
+            }
+
+            if latitude != nil {
+                Section {
+                    if !cacheReady {
+                        HStack {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("Loading...")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    } else {
+                        DatePicker("Night", selection: $moonFreeDate, displayedComponents: .date)
                             .font(.subheadline)
                         HStack {
                             Text("Min moon-free")
@@ -198,6 +213,8 @@ struct SearchableTargetPicker: View {
                             .fixedSize()
                         }
                     }
+                } header: {
+                    Text("Moon-Free Filter")
                 }
             }
 
