@@ -372,6 +372,7 @@ struct SearchableTargetPicker: View {
         .navigationTitle("Select Targets")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            minMoonFreeHoursFilter = 0
             if enabledTypes.isEmpty {
                 // Restore saved filter selections, or default to all
                 if !savedEnabledTypes.isEmpty,
