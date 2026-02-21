@@ -372,7 +372,7 @@ struct SettingsFormContent: View {
                         .foregroundColor(.red)
                 }
                 HStack {
-                    Text("Full Cutoff")
+                    Text("Cutoff")
                         .font(.caption2)
                         .foregroundColor(.white.opacity(0.6))
                     Slider(value: $moonTierConfig.maxMoonPhase, in: 25...100, step: 5)
