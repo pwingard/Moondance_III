@@ -8,6 +8,21 @@ struct HelpView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
 
+                    // MARK: - User Guide Link
+
+                    Link(destination: URL(string: "https://sidestepstudio.com/moondance-user-guide.pdf")!) {
+                        HStack {
+                            Image(systemName: "doc.text")
+                            Text("Download the Full User Guide (PDF)")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.accentColor.opacity(0.12))
+                        .foregroundStyle(Color.accentColor)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+
                     // MARK: - Overview
 
                     sectionHeader("Understanding the Chart")

@@ -4,7 +4,7 @@
 
 ## What Moondance Does
 
-Moondance plans your deep-sky imaging sessions weeks or months in advance. You pick up to six targets, set your location and horizontal clearances, dial in how much moon you are willing to coexist with, and tap Calculate. The app produces a scrollable night-by-night chart showing exactly when each target is above the tree and how much moon you have to deal with — tonight, next week, next lunar cycle, or even when you are in you're dark spot location nine months from now. In a flash, all at a glance, and without opening a single star chart.
+Moondance plans your deep-sky imaging sessions weeks or months in advance. You pick up to six targets, set your location and horizontal clearances, dial in how much moon you are willing to coexist with, and tap Calculate. The app produces a scrollable night-by-night chart showing exactly when each target is above the trees and how much moon you have to deal with — tonight, next week, next lunar cycle, or even when you're at your dark sky location on vacation nine months from now. In a flash, all at a glance, and without opening a single star chart.
 
 ---
 
@@ -48,7 +48,7 @@ Tap **Add Targets** to open the target picker. You can select up to six objects 
 ### Searching and Filtering
 
 - **Search** by name or catalog ID (M42, NGC 7000, Horsehead, etc.)
-- **Filter by type or category** — toggle Galaxies, Nebulae, Open Clusters, Globular Clusters, Supernova Remnants, and more on or off
+- **Filter by type or category** — toggle Galaxies, Nebulae, Dark Nebulae, Planetary Nebulae, Open Clusters, and Globular Clusters on or off
 
 ### Sort by Availability
 
@@ -77,7 +77,7 @@ When you add a target to your selection while the filter is active, it gets a sm
 
 ### Availability Indicators
 
-In the caption line under each target's name, a small colored label shows when that target is in season:
+In the caption line under the target's name, a colored label indicates when, i.e.:
 
 - **Green** — Visible now (currently rising at night at your location)
 - **Yellow** — Rises within 90 days
@@ -100,36 +100,35 @@ If your target isn't in the built-in catalog, you can add it manually by enterin
 
 Open **Settings → Horizon Profile**.
 
-The horizon profile tells the app what's actually blocking your sky — trees, rooftops, hills — in each compass direction. There are eight sliders: N, NE, E, SE, S, SW, W, NW. Set each to the minimum altitude a target must reach before you can image it from that direction.
+The horizon profile lets the app know if anything is blocking your sky — trees, rooftops, hills — in each compass direction. There are eight sliders: N, NE, E, SE, S, SW, W, NW. Set each to the minimum altitude a target must reach before you can image it from that direction.
+
+> Example: if a 110-foot tree line blocks your eastern sky up to about 20°, set E and NE to 20°. Targets rising in the east won't appear as "available" until they clear that threshold.
 
 **Set All** applies the same value to every direction at once — useful as a starting point. Then fine-tune individual directions where you have obstructions.
 
-A radar diagram updates in real time as you adjust, giving you a visual of your horizon shape.
-
-> Example: if a 30-foot tree line blocks your eastern sky up to about 20°, set E and NE to 20°. Targets rising in the east won't appear as "available" until they clear that threshold.
+A spider chart then displays your adjustments so you have a quick visual of your settings.
 
 ---
 
 ## 6. Moon Brightness Tiers
 
-This is the most powerful and most personal setting in the app. Open **Settings → Moon Brightness Tiers**.
+To access this, open **Settings → Moon Brightness Tiers**.
 
 The moon's impact on imaging depends on two things: **how bright the moon is** (its phase) and **how far it is from your target** (angular separation). Moondance lets you set your own tolerance for each phase range.
 
-### The Four Tiers
+### The Five Tiers
 
-| Tier | Moon Phase | Default Min Separation |
-|------|------------|----------------------|
+| Tier | Moon Phase | User Specified Minimum Separation Required |
+|------|------------|------------------------------------|
 | New | 0–10% | 10° |
 | Crescent | 11–25% | 30° |
 | Quarter | 26–50% | 60° |
 | Gibbous | 51%+ | 90° |
+| Cutoff (Adjustable) | 75%+ | No Imaging |
 
-For each tier, you set the **minimum angular separation** (in degrees) you're willing to image under. If the moon is within that angle of your target, the night is rated No Imaging for that tier. If it's farther away, it's Allowable.
+For each tier, you set the **minimum angular separation** (in degrees) you're willing to image under. If the moon is within that angle of your target, the night is rated.
 
-### Moon Phase Cutoff
-
-The **Gibbous cutoff** setting (default 75%) defines the maximum moon phase you'll ever image under, regardless of separation. Any night above this threshold is automatically No Imaging.
+**Cutoff Tier** — Sets a hard limit on moon fullness. Once the moon exceeds this threshold (default 75%), the night is automatically No Imaging regardless of separation or tier settings.
 
 ### Why Separation Matters
 
@@ -155,7 +154,7 @@ After tapping **Calculate**, the app produces a night-by-night bar chart. Rotate
 Each column is one night. Scroll left and right to move through your date range.
 
 **Y-axis — Clock Time**
-Time runs from roughly 8 PM at the top to 5 AM at the bottom, centered around 1 AM. The solid white horizontal line marks 1 AM.
+The bottom is dusk and the top is dawn. The solid white horizontal line marks 1 AM.
 
 **Dark gray background bar**
 The height of the dark background shows how long astronomical darkness lasts that night. Taller = more dark hours.
@@ -194,38 +193,31 @@ Tap the moon in the tooltip for moon rise, set, and duration details.
 
 ## 8. Understanding the Ratings
 
-Moondance evaluates each target each night by comparing your moon tier settings against actual conditions.
+As you know, the moon changes from night to night — when it rises, if it rises, and when it sets, if it sets, changes. The percentage of the moon flooding the night sky changes as well — going from no moon to full moon and back to no moon again. Moondance takes the targets you've selected and the settings you've implemented and gives you a rating per target based on how much moon is up, when it's up, and the angular separation — on a per-target basis. These are graded as follows:
 
 **Good (green)** — The moon is below the horizon for your entire imaging window, or the moon phase is ≤10% and separation exceeds your new moon minimum. Best possible conditions.
 
-**Allowable (yellow)** — The moon is up during part or all of your window, but angular separation exceeds your threshold for the current phase tier. You've told the app this is acceptable, and the app agrees.
+**Allowable (yellow)** — The moon is up during part or all of your window, but the angular separation, on a per-target basis, surpasses your minimum threshold for the current phase of the moon.
 
-**Mixed (orange)** — Your target's visibility spans both a moon-free period and a moon-up period where separation doesn't meet your settings. You have some good time and some marginal time.
+**Mixed (orange)** — Your target has periods within the same imaging session where it beats your minimum threshold requirements, and where it does not.
 
-**No Imaging (red)** — The moon's phase and separation combination doesn't meet any of your tier thresholds, or the moon phase exceeds your cutoff entirely. Per your settings, this night isn't worth shooting.
+**No Imaging (red)** — Your target does not meet your minimum requirements — either it isn't up during your imaging window, or the moonlight is too strong based on the thresholds you've set.
 
-> These ratings reflect **your** settings, not an absolute standard. A narrowband imager might rate a night Good that a broadband imager would call No Imaging. Adjust your tiers to match your workflow.
+> If the target is up but red, it reflects your settings, not an absolute standard. A narrowband imager might rate a night Good that a broadband imager would call No Imaging. Adjust your tiers to match your equipment, taste, and skill.
 
 ---
 
 ## 9. Smart Suggestions
 
-After calculating, Moondance analyzes your selected targets' combined visibility and finds targets that fill the gaps — times when none of your selected targets are up.
+Moondance can suggest targets based on what's available and what time is still open in your night schedule. Suggestions are similar in nature to what you're already imaging — nebula for nebula, for example. If one of your targets goes down, another may be rising at the same time, and Moondance may suggest it. Tap **Add** to include a suggestion in your current selection.
 
-Open **Suggestions** to see ranked recommendations. Each suggestion shows:
-- What gap it fills and for how long
-- Imaging conditions during that window
-- Whether it's in season now, or when it comes into season
-
-Tap **Add** to include a suggestion in your current selection.
-
-The engine samples three representative nights across your date range, scores candidates on gap coverage, moon conditions, and type similarity to your existing selections, and returns the top 12.
+The button in the app is simply labeled **Suggestions**, but the logic behind it is smart — it scores and ranks candidates based on gap coverage, moon conditions, and type similarity to your existing targets. It's not random picks; it's a scored recommendation engine.
 
 ---
 
 ## 10. Custom Targets via CSV
 
-If you image targets not in the built-in catalog, you can import them from a CSV file.
+If you image targets not in the built-in catalog, you can enter them manually by typing in RA and Dec coordinates directly, or import a list from a CSV file.
 
 ### File Format
 
@@ -244,13 +236,13 @@ The parser accepts standard line endings and quoted fields containing commas. A 
 
 ### Exporting Your Custom Targets
 
-Your custom target library can be exported in the same CSV format — useful for backing up or sharing your list.
+Your custom target library can also be exported in the same CSV format — useful for backing up or sharing your list. To do this, tap **Export My Custom Targets** inside the target picker.
 
 ---
 
 ## 11. Exporting Results
 
-Once you've calculated, you can share your results two ways:
+Apart from exporting custom targets like above, you can also export your full session results to share with others or keep as a personal reminder. After calculating, tap the **Export** menu in the toolbar on the main screen. You can share your results two ways:
 
 - **Export CSV** — A spreadsheet with one row per target per night, including moon phase, angular separation, visibility hours, moon-free hours, and rating. Open in Excel, Numbers, or any CSV viewer.
 - **Share Chart** — Exports the rendered bar chart as a PNG image. Useful for sharing a session plan or saving it for reference.
@@ -263,11 +255,13 @@ Once you've calculated, you can share your results two ways:
 
 **Check Mixed nights carefully.** A Mixed rating often means excellent conditions for part of the night. Tap the night for the exact moon-free segment — it may be more useful than it looks.
 
-**Use the horizon profile seriously.** Targets that barely clear your horizon spend most of their time in poor seeing and high extinction. If max altitude is under 30°, consider saving them for a dark-sky trip.
+**Use the horizon profile seriously.** Knowing your tree line is invaluable — and setting it accurately matters just as much. Moondance won't show a target as available until it clears the altitude you've set, so the numbers you enter directly affect your results. There are apps that let you measure the altitude of obstructions around you — use one, plug those numbers in, and let Moondance do the rest.
 
-**Narrowband users: loosen your tiers.** Ha, OIII, and SII filters block most moonlight. Many narrowband imagers set their Crescent and Quarter thresholds to 30° or less. Experiment to find your own limits.
+**Narrowband users: loosen your tiers.**
 
-**Broadband users: tighten your tiers.** LRGB is far more sensitive to moonlight. Quarter and Gibbous thresholds of 90° or more, with a low moon phase cutoff, will save you frustration.
+**Broadband users: tighten your tiers.**
+
+**Use the Moon-Free Filter for spontaneous sessions.** Got an unexpected clear night? Open the target picker, set tonight's date, dial in how many moon-free hours you need, and the list instantly narrows to what's actually worth shooting right now. No star charts, no math — just targets that are ready to go.
 
 **Use Suggestions to fill your nights.** If your primary target sets at 1 AM, the suggestion engine will find you something that rises right as it sets — maximizing your imaging time.
 
@@ -275,4 +269,4 @@ Once you've calculated, you can share your results two ways:
 
 ---
 
-*Moondance Astrophotography Planner · Sidestep Studio · sidestepstudio.com*
+*© 2026 Sidestep Studio · Moondance Astrophotography Planner · sidestepstudio.com*
