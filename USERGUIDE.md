@@ -49,8 +49,31 @@ Tap **Add Targets** to open the target picker. You can select up to six objects 
 
 - **Search** by name or catalog ID (M42, NGC 7000, Horsehead, etc.)
 - **Filter by type or category** — toggle Galaxies, Nebulae, Open Clusters, Globular Clusters, Supernova Remnants, and more on or off
-- **Sort by availability** — reorders the list so targets coming into season appear first
-- **Moon-free filter** — shows only targets with a minimum number of moon-free hours on a chosen night
+
+### Sort by Availability
+
+Turn on **Sort by availability** to reorder the list so targets currently in season appear at the top. Targets coming into season soon follow, and targets that won't rise for months are pushed to the bottom. This is purely a list ordering tool — it doesn't hide anything.
+
+### Moon-Free Filter
+
+The Moon-Free Filter is separate from sorting and does something different: it **hides targets** that don't meet a minimum moon-free threshold on a specific night, so you're only choosing from objects that are actually worth imaging that evening.
+
+**How to use it:**
+
+1. Set the **Night** date to the evening you're planning to image.
+2. Set **Min moon-free** to the minimum number of uninterrupted moon-free hours you need:
+   - **Any** — filter off, all targets shown
+   - **1h+** — at least 1 hour of moon-free imaging time
+   - **2h+** — at least 2 hours
+   - **3h+** — at least 3 hours
+
+With a threshold set, any target that can't deliver that much moon-free time on your chosen night disappears from the list. What remains is a short, focused list of targets that are ready to shoot.
+
+The filter resets to **Any** each time you open the picker — it's a session tool, not a permanent setting.
+
+**Moon-free badge**
+
+When you add a target to your selection while the filter is active, it gets a small badge showing the filter conditions you used — for example, `Feb 21 · 2h+`. The badge appears under the target's name both in the picker and on the main screen, so you always know which targets were selected under a moon filter and which weren't. The badge clears automatically if you remove the target.
 
 ### Availability Indicators
 
