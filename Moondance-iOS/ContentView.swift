@@ -6,6 +6,7 @@ struct ContentView: View {
     @AppStorage("selectedLocationId") private var savedLocationId: String = "atlanta"
     @AppStorage("savedLocationJSON") private var savedLocationJSON: String = ""
     @AppStorage("selectedTargetIds") private var savedTargetIds: String = "[\"m42\"]"
+    @AppStorage("targetBadgesJSON") private var targetBadgesJSON: String = "{}"
     // observationHour removed — hardcoded to 22 (10 PM)
     @AppStorage("useCustomLocation") private var useCustomLocation: Bool = false
     @AppStorage("customLat") private var customLat: String = ""
@@ -59,6 +60,12 @@ struct ContentView: View {
 
     private var maxTargets: Int {
         DeviceLimits.maxTargets(forDays: Int(dateRangeDays))
+    }
+
+    private var targetBadgesDict: [String: String] {
+        guard let data = targetBadgesJSON.data(using: .utf8),
+              let dict = try? JSONDecoder().decode([String: String].self, from: data) else { return [:] }
+        return dict
     }
 
     private var chartTitle: String {
@@ -435,6 +442,19 @@ struct ContentView: View {
                         Text("\(target.brightnessLabel) · \(target.size)")
                             .font(.caption2)
                             .foregroundColor(.secondary)
+                        if let badge = targetBadgesDict[target.id] {
+                            HStack(spacing: 3) {
+                                Image(systemName: "moon.stars.fill")
+                                    .font(.caption2)
+                                Text(badge)
+                                    .font(.caption2)
+                            }
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.accentColor.opacity(0.15))
+                            .cornerRadius(4)
+                            .foregroundColor(.accentColor)
+                        }
                     }
                     Spacer()
                     Button {
@@ -446,7 +466,14 @@ struct ContentView: View {
                     }
                     .buttonStyle(.plain)
                     Button {
+                        let targetId = selectedTargets[index].id
                         selectedTargets.remove(at: index)
+                        var badges = targetBadgesDict
+                        badges.removeValue(forKey: targetId)
+                        if let data = try? JSONEncoder().encode(badges),
+                           let str = String(data: data, encoding: .utf8) {
+                            targetBadgesJSON = str
+                        }
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.secondary)
