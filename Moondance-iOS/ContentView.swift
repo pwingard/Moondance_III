@@ -45,6 +45,8 @@ struct ContentView: View {
     @State private var showSuggestions = false
     @State private var suggestions: [TargetSuggestion] = []
     @State private var isLoadingSuggestions = false
+    @AppStorage("hasSeenQuickStart") private var hasSeenQuickStart = false
+    @State private var showQuickStart = false
     @State private var showHelp = false
     @State private var showSuggestAlert = false
     @State private var showFavorites = false
@@ -444,13 +446,22 @@ struct ContentView: View {
                     }
                 )
             }
-            .onAppear(perform: restoreSettings)
+            .onAppear {
+                restoreSettings()
+                if !hasSeenQuickStart {
+                    showQuickStart = true
+                }
+            }
             .onChange(of: favoriteTargetIds) {
                 let favIds = Array(favoriteTargetIds)
                 if let jsonData = try? JSONEncoder().encode(favIds),
                    let jsonString = String(data: jsonData, encoding: .utf8) {
                     favoriteTargetIdsJSON = jsonString
                 }
+            }
+            .sheet(isPresented: $showQuickStart) {
+                QuickStartView()
+                    .interactiveDismissDisabled(false)
             }
             .sheet(isPresented: $showHelp) {
                 HelpView()
