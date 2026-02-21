@@ -25,7 +25,7 @@ Open **Settings → Location**
 
 Set your **timezone** so rise/set times display correctly in local time.
 
-What is this? -> Elevation affects atmospheric refraction calculations. If you're at significant altitude, entering it accurately improves precision.
+When entering a location manually, you can also set **elevation in meters**. The app passes this to the calculation engine — if you're imaging from a high-altitude site, entering it accurately improves precision.
 
 ---
 
@@ -77,16 +77,14 @@ When you add a target to your selection while the filter is active, it gets a sm
 
 ### Availability Indicators
 
-Each target shows a color indicator:
+In the caption line under each target's name, a small colored label shows when that target is in season:
 
-| Color | Meaning |
-|-------|---------|
-| Green | Visible now |
-| Yellow | Rises within 90 days |
-| Orange | Rises in 90+ days |
-| Red | Never rises at your latitude |
+- **Green** — Visible now (currently rising at night at your location)
+- **Yellow** — Rises within 90 days
+- **Orange** — Rises in 90+ days
+- **Red** — Never rises at your latitude
 
-Targets also show a warning if they barely clear your horizon minimum — useful for knowing which targets need a clear southern horizon.
+If a target barely clears your horizon minimum, a second line in orange or red appears below the caption — for example, *"Max 22° due S · barely clears 20° minimum"* — so you know it's marginal before you add it.
 
 ### Favorites
 
