@@ -278,6 +278,7 @@ struct ContentView: View {
                         }
                     }
                 }
+                .scrollIndicators(.visible)
                 .onChange(of: shouldScrollToChart) { _, shouldScroll in
                     if shouldScroll {
                         withAnimation {
@@ -549,7 +550,9 @@ struct ContentView: View {
     /// Height for the target section Form.
     private var formHeight: CGFloat {
         var height: CGFloat = 36       // "Targets" section header
-        height += CGFloat(selectedTargets.count) * 56  // 2-line target rows
+        for target in selectedTargets {
+            height += targetBadgesDict[target.id] != nil ? 76 : 56  // 20pt extra for badge row
+        }
         height += 44                   // Add Target button
         if !favoriteTargetIds.isEmpty { height += 44 } // Favorites row
         height += 44                   // Suggest button
