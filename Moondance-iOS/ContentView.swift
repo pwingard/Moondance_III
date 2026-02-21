@@ -1,5 +1,14 @@
 import SwiftUI
 
+private struct ScrollContentHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+private struct ScrollOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
 struct ContentView: View {
     // MARK: - Settings State
 
@@ -41,6 +50,9 @@ struct ContentView: View {
     @State private var showFavorites = false
     @State private var favoriteTargetIds: Set<String> = []
     @State private var wikiTarget: Target?
+    @State private var scrollContentHeight: CGFloat = 0
+    @State private var scrollViewHeight: CGFloat = 0
+    @State private var scrollOffset: CGFloat = 0
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -277,8 +289,35 @@ struct ContentView: View {
                             .frame(height: 300)
                         }
                     }
+                    .background(GeometryReader { geo in
+                        Color.clear
+                            .preference(key: ScrollContentHeightKey.self, value: geo.size.height)
+                            .preference(key: ScrollOffsetKey.self, value: -geo.frame(in: .named("mainScroll")).minY)
+                    })
                 }
-                .scrollIndicators(.visible)
+                .coordinateSpace(name: "mainScroll")
+                .scrollIndicators(.never)
+                .background(GeometryReader { geo in
+                    Color.clear.onAppear { scrollViewHeight = geo.size.height }
+                        .onChange(of: geo.size.height) { _, h in scrollViewHeight = h }
+                })
+                .onPreferenceChange(ScrollContentHeightKey.self) { scrollContentHeight = $0 }
+                .onPreferenceChange(ScrollOffsetKey.self) { scrollOffset = max(0, $0) }
+                .overlay(alignment: .topTrailing) {
+                    if scrollContentHeight > scrollViewHeight + 10 {
+                        let indicatorHeight = max(30, scrollViewHeight * (scrollViewHeight / scrollContentHeight))
+                        let maxScrollable = scrollContentHeight - scrollViewHeight
+                        let maxIndicatorY = scrollViewHeight - indicatorHeight - 16
+                        let indicatorY = 8 + (maxScrollable > 0 ? (scrollOffset / maxScrollable) * maxIndicatorY : 0)
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.secondary.opacity(0.45))
+                            .frame(width: 3, height: indicatorHeight)
+                            .padding(.trailing, 2)
+                            .frame(maxHeight: .infinity, alignment: .top)
+                            .offset(y: indicatorY)
+                            .allowsHitTesting(false)
+                    }
+                }
                 .onChange(of: shouldScrollToChart) { _, shouldScroll in
                     if shouldScroll {
                         withAnimation {
