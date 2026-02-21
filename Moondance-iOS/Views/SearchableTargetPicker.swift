@@ -197,7 +197,7 @@ struct SearchableTargetPicker: View {
                                 .foregroundColor(.secondary)
                         }
                     } else {
-                        DatePicker("Night", selection: $moonFreeDate, displayedComponents: .date)
+                        DatePicker("Night", selection: $moonFreeDate, in: Date()..., displayedComponents: .date)
                             .font(.subheadline)
                         HStack {
                             Text("Min moon-free")
