@@ -35,6 +35,7 @@ struct SearchableTargetPicker: View {
     @State private var exportFile: ExportFile?
     @State private var importResultMessage: String?
     @State private var showImportResult = false
+    @AppStorage("targetBadgesJSON") private var targetBadgesJSON: String = "{}"
     private let dataManager = DataManager.shared
     private let customStore = CustomTargetStore.shared
 
@@ -70,10 +71,11 @@ struct SearchableTargetPicker: View {
     var body: some View {
         List {
             if !selectedTargets.isEmpty {
-                Section("Selected (\(selectedTargets.count)/\(maxTargets))") {
+                Section {
                     ForEach(Array(selectedTargets.enumerated()), id: \.element.id) { index, target in
                         Button {
                             selectedTargets.removeAll { $0.id == target.id }
+                            setBadge(for: target.id, label: nil)
                         } label: {
                             HStack {
                                 Circle()
@@ -90,6 +92,19 @@ struct SearchableTargetPicker: View {
                                     }
                                     .font(.caption)
                                     .foregroundColor(.secondary)
+                                    if let badge = targetBadges[target.id] {
+                                        HStack(spacing: 3) {
+                                            Image(systemName: "moon.stars.fill")
+                                                .font(.caption2)
+                                            Text(badge)
+                                                .font(.caption2)
+                                        }
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(Color.accentColor.opacity(0.15))
+                                        .cornerRadius(4)
+                                        .foregroundColor(.accentColor)
+                                    }
                                 }
                                 Spacer()
                                 Button {
@@ -103,6 +118,17 @@ struct SearchableTargetPicker: View {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundColor(.secondary)
                             }
+                        }
+                    }
+                } header: {
+                    HStack {
+                        Text("Selected (\(selectedTargets.count)/\(maxTargets))")
+                        if let label = activeBadgeLabel {
+                            Spacer()
+                            Text("Filtered · \(label)")
+                                .font(.caption)
+                                .foregroundColor(.accentColor)
+                                .textCase(nil)
                         }
                     }
                 }
@@ -387,8 +413,12 @@ struct SearchableTargetPicker: View {
     private func toggleTarget(_ target: Target) {
         if let index = selectedTargets.firstIndex(where: { $0.id == target.id }) {
             selectedTargets.remove(at: index)
+            setBadge(for: target.id, label: nil)
         } else if selectedTargets.count < maxTargets {
             selectedTargets.append(target)
+            if let label = activeBadgeLabel {
+                setBadge(for: target.id, label: label)
+            }
         }
     }
 
@@ -460,6 +490,32 @@ struct SearchableTargetPicker: View {
         let body = "Hi, I'd like to request the following object be added to Moondance:\n\nObject name: \nCatalog ID (if known): \nNotes: \n".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         if let url = URL(string: "mailto:seetheshow87@gmail.com?subject=\(subject)&body=\(body)") {
             UIApplication.shared.open(url)
+        }
+    }
+
+    private var activeBadgeLabel: String? {
+        guard minMoonFreeHoursFilter > 0 else { return nil }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        return "\(formatter.string(from: moonFreeDate)) · \(minMoonFreeHoursFilter)h+"
+    }
+
+    private var targetBadges: [String: String] {
+        guard let data = targetBadgesJSON.data(using: .utf8),
+              let dict = try? JSONDecoder().decode([String: String].self, from: data) else { return [:] }
+        return dict
+    }
+
+    private func setBadge(for targetId: String, label: String?) {
+        var badges = targetBadges
+        if let label = label {
+            badges[targetId] = label
+        } else {
+            badges.removeValue(forKey: targetId)
+        }
+        if let data = try? JSONEncoder().encode(badges),
+           let str = String(data: data, encoding: .utf8) {
+            targetBadgesJSON = str
         }
     }
 
